@@ -90,7 +90,13 @@ class WebControl:
 
     def handle(self,packet):
         op=packet.get('op')
-        if packet=={'op':'web_status'}:return {'ok':True,'data':self.telemetry.read(),'control_available':True}
+        if packet=={'op':'web_status'}:
+            data=self.telemetry.read()
+            return {'ok':True,'data':data,'control_available':True,'server_clock':{'timestamp':time.time(),'timezone':data.get('server_timezone','UTC')}}
+        if packet=={'op':'web_activity'}:
+            from web_activity import collect
+            from config_broker import COMPOSE
+            return {'ok':True,'data':collect(self.root,self.state,COMPOSE)}
         actor=packet.get('actor')
         if not isinstance(actor,str) or re.fullmatch('[a-f0-9]{64}',actor) is None:return {'ok':False,'code':'schema'}
         if op=='web_prepare' and set(packet)=={'op','actor','action'}:return self.prepare(packet['action'],actor)

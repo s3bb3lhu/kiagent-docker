@@ -179,7 +179,7 @@ class Broker:
     def handle(self,request):
         if not isinstance(request,dict):
             raise Invalid('schema')
-        if request.get('op') in {'web_status','web_prepare','web_decide','web_job','web_read'}:
+        if request.get('op') in {'web_status','web_activity','web_prepare','web_decide','web_job','web_read'}:
             if not hasattr(self,'control'):return {'ok':False,'code':'unsupported'}
             return self.control.handle(request)
         if request == {'op':'health'}:

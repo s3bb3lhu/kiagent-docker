@@ -106,7 +106,10 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         lang=language();words=catalog(lang)
         return {'lang':lang,'ui':words,'t':lambda key:words.get(key,key),'languages':LANGUAGES,
                 'theme':request.cookies.get('kiagent_theme','light') if request.cookies.get('kiagent_theme') in {'light','dark'} else 'light',
-                'csrf':csrf(),'public_address':origin,'auth_mode':None}
+                'csrf':csrf(),'public_address':origin,'auth_mode':None,
+                'design':request.cookies.get('kiagent_design','ruby') if request.cookies.get('kiagent_design') in {'ruby','glass'} else 'ruby',
+                'accent':request.cookies.get('kiagent_accent','red') if request.cookies.get('kiagent_accent') in {'red','blue','green','purple','anthracite'} else 'red',
+                'menu_collapsed':request.cookies.get('kiagent_menu')=='collapsed'}
 
     @app.before_request
     def check_request():
@@ -250,7 +253,27 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     @app.get('/')
     @authenticated
     def index():
-        return render_template('dashboard_connections.html',csrf=csrf(),page_active='connections')
+        return render_template('dashboard_status.html',csrf=csrf(),page_active='status')
+
+    @app.get('/settings')
+    @authenticated
+    def settings_page():return render_template('dashboard_settings.html',csrf=csrf(),page_active='settings')
+
+    @app.get('/settings/<provider>')
+    @authenticated
+    def settings_provider(provider):
+        if provider not in {'telegram','discord','openai','health','monitoring'}:abort(404)
+        return render_template('dashboard_connections.html',csrf=csrf(),page_active='settings',selected_provider=provider)
+
+    @app.get('/console')
+    @authenticated
+    def console_page():return render_template('dashboard_console.html',csrf=csrf(),page_active='console')
+
+    @app.get('/api/server/activity')
+    @authenticated
+    def server_activity():
+        result=rpc({'op':'web_activity'})
+        return jsonify(result),200 if result.get('ok') else 503
 
     @app.get('/status')
     @authenticated

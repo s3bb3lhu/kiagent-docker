@@ -69,7 +69,7 @@ def main():
             if path.is_file():replace(PROJECT/rel,path.read_bytes())
         replace('/opt/kiagent/executor/package_server.py',(SOURCE/'host/package_executor.py').read_bytes(),0o600)
         replace('/opt/kiagent/executor/package_policy.py',(SOURCE/'src/app/package_policy.py').read_bytes(),0o600)
-        for name in ('config_broker.py','config_store.py','web_control.py','web_status.py'):
+        for name in ('config_broker.py','config_store.py','web_control.py','web_status.py','web_activity.py'):
             replace('/usr/local/lib/kiagent-config/'+name,(SOURCE/'host'/name).read_bytes())
         replace('/usr/local/lib/kiagent-config/package_policy.py',(SOURCE/'src/app/package_policy.py').read_bytes())
         for name in ('kiagent-docker.service','kiagent-packages.service'):

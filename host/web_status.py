@@ -5,6 +5,7 @@ import shutil
 import socket
 import subprocess
 import time
+import re
 from pathlib import Path
 
 class Telemetry:
@@ -12,7 +13,15 @@ class Telemetry:
     def read(self):
         now=time.monotonic()
         if self.cached and now-self.at<2:return self.cached
-        cpu=[int(x) for x in Path('/proc/stat').read_text().splitlines()[0].split()[1:9]]
+        cpu_lines=Path('/proc/stat').read_text().splitlines()
+        cpu=[int(x) for x in cpu_lines[0].split()[1:9]]
+        per_core={line.split()[0]:[int(x) for x in line.split()[1:9]] for line in cpu_lines[1:] if re.match(r'^cpu[0-9]+\s',line)}
+        cores=[]
+        for name,values in per_core.items():
+            old=self.previous[3].get(name) if self.previous else None
+            total=sum(values)-sum(old) if old else 0
+            idle=values[3]+values[4]-old[3]-old[4] if old else 0
+            cores.append({'index':int(name[3:]),'name':name,'percent':round(max(0,min(100,100*(total-idle)/total)),1) if total>0 else None})
         counters={}
         for line in Path('/proc/net/dev').read_text().splitlines()[2:]:
             name,values=line.split(':',1);name=name.strip();values=values.split()
@@ -28,7 +37,7 @@ class Telemetry:
         if self.previous:
             old=self.previous[1];total=sum(cpu)-sum(old);idle=cpu[3]+cpu[4]-old[3]-old[4]
             if total>0:percent=round(max(0,min(100,100*(total-idle)/total)),1)
-        self.previous=(now,cpu,counters)
+        self.previous=(now,cpu,counters,per_core)
         memory={line.split(':')[0]:int(line.split()[1])*1024 for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith(('MemTotal:','MemAvailable:'))}
         disks=[]
         try:
@@ -58,10 +67,12 @@ class Telemetry:
                     for value in row.get('addr_info',[]):
                         if value.get('scope')=='global':addresses.append({'interface':row['ifname'],'address':value['local'],'family':value['family']})
         except (OSError,ValueError,subprocess.SubprocessError):pass
-        self.cached={'available':True,'scope':'host','sampled_at':time.time(),'hostname':socket.gethostname(),
+        timezone_path=str(Path('/etc/localtime').resolve())
+        timezone=timezone_path.split('/zoneinfo/',1)[1] if '/zoneinfo/' in timezone_path else 'UTC'
+        self.cached={'available':True,'scope':'host','sampled_at':time.time(),'hostname':socket.gethostname(),'server_timezone':timezone,
                      'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
                      'uptime_seconds':int(float(Path('/proc/uptime').read_text().split()[0])),
-                     'cpu_percent':percent,'cpu_count':os.cpu_count(),'load':list(os.getloadavg()),
+                     'cpu_percent':percent,'cpu_count':os.cpu_count(),'cores':cores,'load':list(os.getloadavg()),
                      'memory':{'total_bytes':memory['MemTotal'],'available_bytes':memory['MemAvailable'],
                                'used_bytes':memory['MemTotal']-memory['MemAvailable'],
                                'used_percent':round(100*(1-memory['MemAvailable']/memory['MemTotal']),1)},

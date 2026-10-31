@@ -44,6 +44,7 @@ class PortableBackend:
             fcntl.flock(self.lock,fcntl.LOCK_EX)
             try:
                 if packet=={'op':'web_status'}:return {'ok':True,'data':{'available':False,'scope':'portable'},'control_available':False}
+                if packet=={'op':'web_activity'}:return {'ok':True,'data':{'available':False,'events':[],'sources':{}}}
                 if packet.get('op','').startswith('web_'):return {'ok':False,'code':'unsupported'}
                 if packet=={'op':'health'}:return {'ok':True}
                 if packet=={'op':'overview'}:

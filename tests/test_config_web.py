@@ -72,7 +72,8 @@ class WebTests(unittest.TestCase):
         self.assertEqual(page.headers['Referrer-Policy'],'same-origin')
         self.assertIn("frame-ancestors 'none'",page.headers['Content-Security-Policy'])
         for link in ('https://t.me/BotFather','https://discord.com/developers/applications','https://platform.openai.com/api-keys','https://healthchecks.io/checks/'):
-            self.assertIn(link,page.text)
+            pages=''.join(self.get('/settings/'+provider).text for provider in ('telegram','discord','openai','health'))
+            self.assertIn(link,pages)
 
     def test_login_rate_limit(self):
         token = self.csrf()
@@ -142,7 +143,7 @@ class WebTests(unittest.TestCase):
     def test_localized_pages_and_persisted_language(self):
         self.login()
         for lang in LANGUAGES:
-            for path in ('/','/status','/control','/password'):
+            for path in ('/','/status','/control','/console','/settings','/settings/telegram','/settings/discord','/settings/openai','/settings/health','/settings/monitoring','/password'):
                 response=self.get(path+'?lang='+lang)
                 self.assertEqual(response.status_code,200)
                 self.assertIn('lang="'+lang+'"',response.text)

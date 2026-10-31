@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 from ai_install import resolve
+from ai_activity import record
 from package_action import propose_package
 from telegram.ext import CommandHandler
 from diagnose import snapshot
@@ -46,6 +47,7 @@ async def ki(update, context):
             await message.reply_text(f'Bitte noch {int(remaining) + 1} Sekunden warten.')
             return
         NEXT_ALLOWED = time.monotonic() + 30
+        record('telegram','ai_started')
         await message.reply_text(
             'Dein Auftrag und feste Statusmesswerte werden an OpenAI gesendet. '
             'Bei Installationswuenschen bereite ich einen echten Paketplan mit gesonderter Bestaetigung vor.')
@@ -54,11 +56,14 @@ async def ki(update, context):
                    'openai-api-key').read_text().strip()
             decision=await asyncio.wait_for(resolve(key,request,await asyncio.to_thread(snapshot)),timeout=50)
             if decision['intent']=='install':
+                record('telegram','ai_plan')
                 await message.reply_text('Installationswunsch erkannt: '+decision['package']+'. Der echte APT-Plan wird jetzt vorbereitet. Erst nach deiner Bestaetigung wird installiert.')
                 await propose_package(update,context,decision['package'])
                 return
             text='KI-Antwort – keine Aenderungen ausgefuehrt:\n\n'+decision['answer'][:3400]
+            record('telegram','ai_finished')
         except Exception:
+            record('telegram','ai_failed')
             text = ('KI-Antwort derzeit nicht verfuegbar. Keine Aenderungen '
                     'ausgefuehrt. /status und /automatik_status bleiben verfuegbar.')
         await message.reply_text(text, parse_mode=None)

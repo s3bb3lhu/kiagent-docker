@@ -1,6 +1,12 @@
 # Dashboard
 
-Die angemeldete Oberfläche hat drei Bereiche: Verbindungen, Status und Steuerung. Über die Sprachauswahl unten links stehen Deutsch, Englisch, Spanisch und Französisch zur Verfügung. Tag-/Nachtmodus und Sprache werden für diesen Browser gespeichert. Zahlen, Datumsangaben, Meldungen und Bestätigungen folgen der gewählten Sprache. Technische Kennungen wie `/automatik_an`, Paketnamen, Schnittstellen und Dateisystempfade bleiben unverändert.
+Die angemeldete Oberfläche hat die Bereiche Status, Steuerung, SSH Console und Einstellungen. Das Menü lässt sich einklappen. API-Schlüssel werden je Dienst auf einer eigenen Einstellungsseite verwaltet; dort liegt auch die Passwortänderung. Über die Sprachauswahl unten links stehen Deutsch, Englisch, Spanisch und Französisch zur Verfügung. Ruby Control und Crimson Glass gibt es in Rot, Blau, Grün, Lila und Anthrazit, jeweils mit Tag-/Nachtmodus. Design, Farbe, Modus, Menü und Sprache werden für diesen Browser gespeichert. Zahlen, Datumsangaben, Meldungen und Bestätigungen folgen der gewählten Sprache. Technische Kennungen wie `/automatik_an`, Paketnamen, Schnittstellen und Dateisystempfade bleiben unverändert.
+
+Der Kopfbereich zeigt lokale Zeit und separat die vom Host gelieferte Serverzeit mit Zeitzone. Bei ausbleibenden Antworten wird die Serveruhr nach 45 Sekunden als nicht verfügbar markiert. Der Status zeigt alle logischen CPU-Kerne; die Auslastung benötigt jeweils zwei Messungen.
+
+## SSH Console
+
+Die Konsole ist eine lesende Aktivitätsansicht, keine interaktive SSH-Shell. Sie zeigt feste KI-Bearbeitungsphasen aus den Bots seit deren letztem Neustart sowie die jüngsten Paket- und Webaufträge. Anfragen, KI-Antworten und Geheimnisse werden nicht protokolliert. APT-Fortschritt wird ausschließlich aus bekannten Zeilenpräfixen und Paketnamen des tatsächlichen Plans extrahiert; rohe Ausgaben von Installationsskripten werden niemals an den Browser weitergegeben. Auftragserstellungszeiten sind entsprechend beschriftet, APT-Schritte ohne Einzelzeit bleiben ohne erfundene Zeitangabe. Ohne passenden Host-Adapter bleibt die Seite vorhanden und weist auf die fehlende Anbindung hin.
 
 ## Status
 
@@ -27,7 +33,7 @@ Der Kopfbereich enthält links neben Abmelden einen echten Server-Neustart. Nach
 Aus dem vorbereiteten Quellstand auf der bestehenden verwalteten Linux-Installation:
 
 ```bash
-sudo python3 tools/install_dashboard.py
+sudo python3 tools/install_ui.py
 ```
 
 Der Installer sichert den Stand, baut und testet die Images mit isolierten Beispieldaten, aktualisiert Web-Image und begrenzten Konfigurationsdienst und prüft Host-Messwerte sowie lesende Agentenaufrufe. Das vorhandene Passwort, Bot-Tokens, Host-Agenten und SQLite-Historie werden nicht zurückgesetzt. Bei einem Fehler werden vorherige Code-Dateien und das vorherige Web-Image wiederhergestellt. Anschließend den Browser mit Strg+F5 neu laden.
