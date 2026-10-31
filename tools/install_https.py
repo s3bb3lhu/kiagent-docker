@@ -36,6 +36,8 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/'''+address+'''/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_tickets off;
+    proxy_hide_header Referrer-Policy;
+    add_header Referrer-Policy same-origin always;
     client_max_body_size 32k;
     access_log off;
     if ($host != "'''+address+'''") { return 444; }

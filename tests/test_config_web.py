@@ -68,6 +68,7 @@ class WebTests(unittest.TestCase):
         self.login()
         page = self.get('/')
         self.assertEqual(page.headers['Cache-Control'],'no-store')
+        self.assertEqual(page.headers['Referrer-Policy'],'same-origin')
         self.assertIn("frame-ancestors 'none'",page.headers['Content-Security-Policy'])
         for link in ('https://t.me/BotFather','https://discord.com/developers/applications','https://platform.openai.com/api-keys','https://healthchecks.io/checks/'):
             self.assertIn(link,page.text)

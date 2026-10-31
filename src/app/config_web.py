@@ -107,7 +107,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         if public_tls:
             response.headers['Strict-Transport-Security'] = 'max-age=86400'
         response.headers.update({'Cache-Control':'no-store','Pragma':'no-cache',
-            'X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'no-referrer',
+            'X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'same-origin',
             'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"})
         return response
 
