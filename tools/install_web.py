@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Install/update the loopback configuration UI without changing bot tokens."""
-import getpass
 import hashlib
 import http.cookiejar
 import json
@@ -82,14 +81,8 @@ def main():
     password = None
     new_auth = {}
     if not admin_file.exists():
-        print('Waehle jetzt ein eigenes Web-Administratorpasswort. Die Eingabe bleibt unsichtbar.',flush=True)
-        password = getpass.getpass('Web-Administratorpasswort (mindestens 16 Zeichen): ')
-        if not 16 <= len(password) <= 256:
-            raise SystemExit('Bitte ein Passwort mit 16 bis 256 Zeichen waehlen.')
-        if password != getpass.getpass('Passwort wiederholen: '):
-            raise SystemExit('Passwoerter stimmen nicht ueberein. Keine Dienste geaendert.')
         salt = secrets.token_hex(16)
-        digest = hashlib.pbkdf2_hmac('sha256',password.encode(),bytes.fromhex(salt),600000).hex()
+        digest = hashlib.pbkdf2_hmac('sha256',secrets.token_bytes(48),bytes.fromhex(salt),600000).hex()
         new_auth[admin_file] = (salt+'$'+digest+'\n').encode()
         new_auth[session_file] = (secrets.token_hex(32)+'\n').encode()
     # Build a separate UI image; running chat containers keep their existing image.
@@ -129,14 +122,24 @@ def main():
                 raise SystemExit('Unerwartet grosse Quelldatei.')
             payload[relative] = path.read_bytes()
     was_running = subprocess.run(['/usr/bin/systemctl','is-active','--quiet','kiagent-config.service']).returncode == 0
+    auth_directory=Path('/var/lib/kiagent-web/auth')
+    if auth_directory.is_symlink():raise SystemExit('Unsicheres Auth-Verzeichnis.')
+    auth_directory.mkdir(parents=True,mode=0o700,exist_ok=True)
+    if auth_directory.stat().st_uid not in (0,account.pw_uid):raise SystemExit('Unsicherer Auth-Besitzer.')
+    os.chown(auth_directory,account.pw_uid,account.pw_gid)
+    os.chmod(auth_directory,0o700)
     try:
         for relative,data in payload.items():
             replace(PROJECT/relative,data)
         for path,data in new_auth.items():
             replace(path,data,0o440,account.pw_gid)
+        if new_auth:
+            legacy=tuple(new_auth[admin_file].decode().strip().split('$',1))
+            code="import sys;sys.path.insert(0,"+repr(str(PROJECT/'src/app'))+");from web_auth import AuthStore;AuthStore("+repr(str(auth_directory))+","+repr(legacy)+").reset()"
+            run(['/usr/bin/setpriv','--reuid='+str(account.pw_uid),'--regid='+str(account.pw_gid),'--clear-groups','--','/usr/bin/python3','-I','-c',code])
         env_file = CONFIG/'deployment.env'
         env = dict(line.split('=',1) for line in env_file.read_text().splitlines() if line and not line.startswith('#'))
-        env.update(CONFIG_UID=str(account.pw_uid),CONFIG_GID=str(account.pw_gid),CONFIG_ORIGIN=ORIGIN)
+        env.update(CONFIG_UID=str(account.pw_uid),CONFIG_GID=str(account.pw_gid),CONFIG_ORIGIN=ORIGIN,CONFIG_SETUP_LOCAL_ONLY='1')
         replace(env_file,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
         for name in ('config_store.py','config_broker.py'):
             replace('/usr/local/lib/kiagent-config/'+name,payload[Path('host')/name])
@@ -218,7 +221,8 @@ def main():
             os.chown(path,owner.pw_uid,owner.pw_gid)
     print(json.dumps(report,indent=2))
     print('Konfigurationsseite bereit. Oeffne einen SSH-Tunnel und besuche '+ORIGIN)
-    print('Das Web-Passwort wurde nicht ausgegeben. Bot-Tokens wurden nicht veraendert.')
+    print('Passwort auf /setup im Browser festlegen: ab 8 Zeichen, Grossbuchstabe, Zahl und Sonderzeichen. Kein Einrichtungscode.')
+    print('Bot-Tokens wurden nicht veraendert.')
 
 if __name__ == '__main__':
     main()

@@ -3,6 +3,7 @@ import collections
 import functools
 import hashlib
 import hmac
+import ipaddress
 import json
 import os
 import secrets
@@ -14,6 +15,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException
+from web_auth import AuthStore,POLICY,valid_password
 
 MESSAGES = {
     'schema':'Die Eingabe konnte nicht gelesen werden. Bitte die Seite neu laden.',
@@ -56,7 +58,7 @@ def exchange(payload):
 def password_hash(password,salt):
     return hashlib.pbkdf2_hmac('sha256',password.encode(),bytes.fromhex(salt),600000).hex()
 
-def create_app(credentials=None,backend=exchange,origin=None):
+def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setup_ip=None):
     credentials = Path(credentials or os.environ.get('CREDENTIALS_DIRECTORY','/run/secrets'))
     origin = origin or os.environ.get('CONFIG_ORIGIN','http://127.0.0.1:8787')
     parsed = urlsplit(origin)
@@ -70,6 +72,12 @@ def create_app(credentials=None,backend=exchange,origin=None):
         SESSION_COOKIE_NAME='kiagent_config',SESSION_COOKIE_SECURE=public_tls,
         PERMANENT_SESSION_LIFETIME=timedelta(minutes=30))
     salt,expected = (credentials/'web-admin-hash').read_text().strip().split('$',1)
+    auth=AuthStore(state_dir or os.environ.get('CONFIG_AUTH_DIR','/var/lib/kiagent-web/auth'),(salt,expected))
+    setup_ip=setup_ip or os.environ.get('CONFIG_SETUP_ALLOWED_IP','127.0.0.1')
+    setup_ip=str(ipaddress.ip_address(setup_ip))
+    setup_proxy=os.environ.get('CONFIG_SETUP_PROXY','0')=='1'
+    local_setup=os.environ.get('CONFIG_SETUP_LOCAL_ONLY','0')=='1'
+    if public_tls and local_setup:raise ValueError('Public HTTPS requires an administrator IP restriction')
     failures = collections.deque()
     rate_lock = threading.Lock()
 
@@ -81,8 +89,11 @@ def create_app(credentials=None,backend=exchange,origin=None):
     @app.before_request
     def check_request():
         # The TLS proxy passes a fixed Host. Never trust client-supplied forwarded headers.
-        if request.host != parsed.netloc:
+        if request.host.lower() != parsed.netloc.lower():
             abort(400)
+        current=auth.read()
+        if session.get('authenticated') and session.get('epoch')!=current['epoch']:
+            session.clear()
         if request.method not in {'GET','HEAD','POST'}:
             abort(405)
         if request.method == 'POST':
@@ -103,7 +114,7 @@ def create_app(credentials=None,backend=exchange,origin=None):
     def authenticated(function):
         @functools.wraps(function)
         def wrapper(*args,**kwargs):
-            if session.get('authenticated') is not True:
+            if session.get('authenticated') is not True or auth.read()['mode']!='ready':
                 if request.path.startswith('/api/'):
                     return jsonify(ok=False,message='Bitte anmelden.'),401
                 return redirect(url_for('login'))
@@ -121,6 +132,8 @@ def create_app(credentials=None,backend=exchange,origin=None):
 
     @app.route('/login',methods=['GET','POST'])
     def login():
+        if auth.read()['mode']=='setup':
+            return redirect(url_for('setup'))
         error = None
         if request.method == 'POST':
             now = time.monotonic()
@@ -133,16 +146,72 @@ def create_app(credentials=None,backend=exchange,origin=None):
             if limited:
                 return render_template('config_login.html',csrf=csrf(),error='Zu viele Versuche. Bitte eine Minute warten.'),429
             password = request.form.get('password','')
-            if 1 <= len(password)<=256 and hmac.compare_digest(password_hash(password,salt),expected):
+            current=auth.read()
+            if auth.verify(password,current):
                 with rate_lock:
                     failures.clear()
                 session.clear()
                 session.permanent = True
                 session['authenticated'] = True
+                session['epoch'] = current['epoch']
                 csrf()
                 return redirect(url_for('index'))
             error = 'Das Passwort stimmt nicht.'
         return render_template('config_login.html',csrf=csrf(),error=error)
+
+    def limited_attempt():
+        now=time.monotonic()
+        with rate_lock:
+            while failures and now-failures[0]>60:failures.popleft()
+            if len(failures)>=5:return True
+            failures.append(now)
+            return False
+
+    @app.route('/setup',methods=['GET','POST'])
+    def setup():
+        if auth.read()['mode']!='setup':return redirect(url_for('login'))
+        client_ip=request.headers.get('X-Kiagent-Setup-IP','') if setup_proxy else request.remote_addr
+        if not local_setup and client_ip!=setup_ip:abort(403)
+        error=None
+        if request.method=='POST':
+            if limited_attempt():
+                return render_template('config_password.html',setup=True,csrf=csrf(),policy=POLICY,error='Zu viele Versuche. Bitte eine Minute warten.'),429
+            password=request.form.get('password','')
+            if not valid_password(password):error=POLICY
+            elif password!=request.form.get('repeat'):error='Die Passwörter stimmen nicht überein.'
+            else:
+                epoch=auth.set_password(password,setup=True)
+                if epoch:
+                    session.clear()
+                    session.permanent=True
+                    session.update(authenticated=True,epoch=epoch)
+                    csrf()
+                    with rate_lock:failures.clear()
+                    return redirect(url_for('index'))
+                error='Die Einrichtung wurde bereits abgeschlossen. Bitte normal anmelden.'
+        return render_template('config_password.html',setup=True,csrf=csrf(),policy=POLICY,error=error)
+
+    @app.route('/password',methods=['GET','POST'])
+    @authenticated
+    def change_password():
+        error=None
+        if request.method=='POST':
+            if limited_attempt():
+                return render_template('config_password.html',setup=False,csrf=csrf(),policy=POLICY,error='Zu viele Versuche. Bitte eine Minute warten.'),429
+            password=request.form.get('password','')
+            if not valid_password(password):error=POLICY
+            elif password!=request.form.get('repeat'):error='Die Passwörter stimmen nicht überein.'
+            else:
+                epoch=auth.set_password(password,current=request.form.get('current',''))
+                if epoch:
+                    session.clear()
+                    session.permanent=True
+                    session.update(authenticated=True,epoch=epoch)
+                    csrf()
+                    with rate_lock:failures.clear()
+                    return redirect(url_for('index'))
+                error='Das bisherige Passwort stimmt nicht.'
+        return render_template('config_password.html',setup=False,csrf=csrf(),policy=POLICY,error=error)
 
     @app.post('/logout')
     @authenticated
@@ -188,5 +257,8 @@ def create_app(credentials=None,backend=exchange,origin=None):
     @app.errorhandler(Exception)
     def error(error):
         code = error.code if isinstance(error,HTTPException) else 500
+        if request.path in {'/login','/setup','/password','/'}:
+            app.logger.warning('Web request rejected: status=%s type=%s',code,type(error).__name__)
+            return render_template('config_error.html',message=('Die Sitzung ist abgelaufen oder das Sicherheits-Cookie fehlt. Öffne die Anmeldung neu und erlaube Cookies für diese Seite.' if code==403 else 'Die Anfrage konnte nicht verarbeitet werden. Bitte die Seite neu öffnen.')),code
         return jsonify(ok=False,message='Anfrage nicht erlaubt oder nicht verfügbar.'),code
     return app

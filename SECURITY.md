@@ -15,3 +15,7 @@
 - Die Web-App läuft als eigener unprivilegierter Benutzer ohne Docker-Socket. Der Root-Konfigurationsdienst hat feste Eingabefelder, feste Dateiziele und feste Dienstaktionen; Modelltext und Formulare können keine beliebigen Befehle ausführen.
 - Schreibzugriffe erfordern Anmeldung, CSRF-Prüfung, passenden Host/Origin und aktuellen Konfigurationsstand. Die Seite lädt keine externen Skripte oder Schriftarten. Sitzungen laufen nach 30 Minuten ab.
 - Sicherungen enthalten auch alte Schlüssel. Ein Rollback macht eine beim Anbieter widerrufene Zugangsdaten-Version nicht wieder gültig. Bei unterbrochener Übernahme oder fehlgeschlagener Wiederherstellung bleiben weitere Änderungen bis zur Prüfung per SSH gesperrt.
+
+- Keine Einrichtungscodes und kein Standardpasswort. Die initiale Passwortvergabe ist nur lokal oder über die explizit freigegebene Administrator-IP zulässig. Ein öffentliches, ungeschütztes First-Claim-Verfahren ist ausgeschlossen. Der verwaltete nginx-Proxy überschreibt den Setup-IP-Header und beschränkt `/setup` zusätzlich selbst.
+- Passwortänderungen und Reset widerrufen alle bisherigen Web-Sitzungen über eine persistente Authentifizierungsgeneration. Fehlende Auth-Dateien nach einer früheren Einrichtung dürfen nicht auf den früheren Passwort-Hash zurückfallen.
+- Die portable Variante hat keinen Host-Socket und führt keine Host-Befehle aus. Native Windows-Reparaturen benötigen einen eigenen, noch nicht implementierten Adapter.

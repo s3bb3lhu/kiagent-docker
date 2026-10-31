@@ -16,3 +16,5 @@ jobs:
         run: sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin kiagent
       - name: Build and test without credentials or live bots
         run: sudo python3 tools/test_docker.py
+      - name: Test portable first setup and restart without host access
+        run: sudo python3 tools/test_portable.py

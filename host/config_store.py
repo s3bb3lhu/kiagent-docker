@@ -53,8 +53,9 @@ def validate_secret(name,value):
     return value
 
 class Store:
-    def __init__(self,root,gid,signing_key):
+    def __init__(self,root,gid,signing_key,owner=0):
         self.root,self.gid,self.signing_key = Path(root),gid,signing_key
+        self.owner=owner
 
     def read(self):
         result = {}
@@ -137,7 +138,7 @@ class Store:
                     stream.flush()
                     os.fsync(stream.fileno())
                     os.fchmod(stream.fileno(),0o600 if name == 'deployment.env' else 0o440)
-                    os.fchown(stream.fileno(),0,self.gid if name != 'deployment.env' else 0)
+                    os.fchown(stream.fileno(),self.owner,self.gid if name != 'deployment.env' or self.owner!=0 else 0)
                 os.replace(temporary,path)
             finally:
                 if os.path.exists(temporary):

@@ -16,7 +16,9 @@ SITE = Path('/etc/nginx/sites-available/kiagent-config')
 ENABLED = Path('/etc/nginx/sites-enabled/kiagent-config')
 CERTBOT = '/opt/kiagent-certbot/bin/certbot'
 
-def nginx_config(address,tls=False):
+def nginx_config(address,tls=False,setup_ip=None):
+    address=str(ipaddress.IPv4Address(address))
+    if setup_ip is not None:setup_ip=str(ipaddress.ip_address(setup_ip))
     text = MARKER+'''limit_req_zone $binary_remote_addr zone=kiagent_login:10m rate=5r/m;
 server {
     listen 80 default_server;
@@ -57,6 +59,20 @@ server {
     }
 }
 '''
+    if tls:
+        text=text.replace('proxy_set_header X-Forwarded-Proto https;','proxy_set_header X-Forwarded-Proto https;\n        proxy_set_header X-Kiagent-Setup-IP $remote_addr;')
+        setup=('allow '+setup_ip+'; deny all;' if setup_ip else 'deny all;')
+        text=text.replace('    location / {\n        proxy_pass', '''    location = /setup {
+        '''+setup+'''
+        limit_req zone=kiagent_login burst=5 nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:8787;
+        proxy_set_header Host '''+address+''';
+        proxy_set_header X-Kiagent-Setup-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+    location / {
+        proxy_pass''')
     return text
 
 SERVICE = '''[Unit]
@@ -83,6 +99,7 @@ WantedBy=timers.target
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--address',required=True)
+    parser.add_argument('--admin-ip')
     args = parser.parse_args()
     address = str(ipaddress.IPv4Address(args.address))
     if not ipaddress.ip_address(address).is_global or os.geteuid()!=0:
@@ -166,10 +183,14 @@ def main():
         env_path=CONFIG/'deployment.env'
         env=dict(line.split('=',1) for line in env_path.read_text().splitlines() if line and not line.startswith('#'))
         env['CONFIG_ORIGIN']='https://'+address
+        admin_ip=args.admin_ip or env.get('CONFIG_SETUP_ALLOWED_IP') or os.environ.get('SSH_CONNECTION','').split(' ')[0]
+        if not admin_ip or admin_ip=='127.0.0.1':
+            admin_ip=input('Oeffentliche IP deines PCs fuer die Passwort-Ersteinrichtung: ').strip()
+        env.update(CONFIG_SETUP_ALLOWED_IP=str(ipaddress.ip_address(admin_ip)),CONFIG_SETUP_PROXY='1',CONFIG_SETUP_LOCAL_ONLY='0')
         replace(env_path,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
         changed=True
         run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'])
-        replace(SITE,nginx_config(address,True).encode())
+        replace(SITE,nginx_config(address,True,env.get('CONFIG_SETUP_ALLOWED_IP')).encode())
         run(['/usr/sbin/nginx','-t'])
         run(['/usr/bin/systemctl','reload','nginx.service'])
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))

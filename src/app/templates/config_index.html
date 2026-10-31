@@ -3,6 +3,7 @@
 <div class="workspace"><header class="topbar"><span>Verwaltung <span class="slash">/</span> <strong>Verbindungen</strong></span><form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="text-button" type="submit">Abmelden ↗</button></form></header>
 <main><div class="page-heading"><div><p class="eyebrow">KONFIGURATION</p><h1>Alles verbunden.</h1><p class="muted">Verwalte deine Bots, KI und Lebenszeichen an einem Ort.</p></div><span class="outline-badge"><span class="dot"></span> Dein Server</span></div>
 <div id="notice" class="notice" role="status" aria-live="polite">Konfiguration wird geladen …</div>
+<p id="capability-notice" class="notice" hidden></p><p><a href="/password">Administrator-Passwort ändern</a></p>
 <div class="privacy-strip"><span>◈</span><div><strong>Deine Tokens bleiben verborgen.</strong><p>Gespeicherte Werte werden nicht angezeigt. Leere Felder lassen sie unverändert.</p></div></div>
 <form id="config-form" autocomplete="off"><div class="cards">
 <section class="card"><div class="card-heading"><div class="service-icon telegram">↗</div><div><h2>Telegram</h2><p>Dein direkter Draht zum Server</p></div><span class="status-badge" id="state-telegram">Wird geladen</span></div>

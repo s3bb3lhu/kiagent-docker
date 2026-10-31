@@ -64,13 +64,13 @@ Der Installer überschreibt keine vorhandene Docker-Projektinstallation. Updates
 
 ## Konfigurationsseite im Browser
 
-Bei einer Neuinstallation fragt der Installer zusätzlich nach einem eigenen Web-Administratorpasswort mit mindestens 16 Zeichen. Bei einer bestehenden Docker-Installation wird die Oberfläche aus dem geprüften neuen Projektstand ergänzt:
+Bei einer Neuinstallation legst du das Administrator-Passwort anschließend auf `/setup` im Browser fest: mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen; keine Leerzeichen. Es gibt weder Standardpasswort noch Einrichtungscode. Bei einer bestehenden Docker-Installation wird die Oberfläche aus dem geprüften neuen Projektstand ergänzt:
 
 ```bash
 sudo python3 tools/install_web.py
 ```
 
-Der Installer baut ein separates Web-Image, sichert den bisherigen Stand und startet die Oberfläche. Die vorhandenen Bot-Tokens werden dabei nicht verändert. Das Passwort wird verdeckt im Server-Terminal eingegeben und nicht ausgegeben. Es wird nur als gesalzener Passwort-Hash gespeichert.
+Der Installer baut ein separates Web-Image, sichert den bisherigen Stand und startet die Oberfläche. Die vorhandenen Bot-Tokens werden dabei nicht verändert. Das Passwort wird ausschließlich im Browser festgelegt und nur als gesalzener Passwort-Hash gespeichert. Die erste Einrichtung ist lokal erreichbar beziehungsweise bei öffentlichem HTTPS auf die festgelegte Administrator-IP beschränkt.
 
 Öffne anschließend auf deinem eigenen Computer einen Tunnel und lasse das Terminal geöffnet:
 
@@ -78,7 +78,7 @@ Der Installer baut ein separates Web-Image, sichert den bisherigen Stand und sta
 ssh -N -L 8787:127.0.0.1:8787 seb@DEIN-SERVER
 ```
 
-Rufe [http://127.0.0.1:8787](http://127.0.0.1:8787) auf und melde dich mit deinem Web-Passwort an. Die Oberfläche ist ausschließlich an die Loopback-Adresse des Servers gebunden. Es wird kein öffentlicher Web-Port und keine Domain benötigt. Ein SSH-Schlüssel mit der Option `restrict` erlaubt diesen Tunnel möglicherweise nicht; nutze deinen bisherigen regulären SSH-Zugang. Der Installer ändert keine SSH-Einstellungen.
+Rufe [http://127.0.0.1:8787](http://127.0.0.1:8787) auf und lege bei der ersten Nutzung auf `/setup` dein Web-Passwort fest. Später meldest du dich mit diesem Passwort an. Die Oberfläche ist ausschließlich an die Loopback-Adresse des Servers gebunden. Es wird kein öffentlicher Web-Port und keine Domain benötigt. Ein SSH-Schlüssel mit der Option `restrict` erlaubt diesen Tunnel möglicherweise nicht; nutze deinen bisherigen regulären SSH-Zugang. Der Installer ändert keine SSH-Einstellungen.
 
 Die Seite erklärt direkt neben den Feldern, wo Telegram- und Discord-Bot-Tokens, der optionale OpenAI-API-Schlüssel, beide optionalen Healthchecks-Ping-URLs und die benötigten IDs zu finden sind. Gespeicherte Tokens werden niemals wieder an den Browser geschickt. Leere Token-Felder behalten vorhandene Werte bei; optionale Schlüssel können ausdrücklich entfernt werden.
 
@@ -136,3 +136,7 @@ docker run --rm --network none --read-only --cap-drop ALL \
 ```
 
 Python-Image und Abhängigkeiten sind per Digest beziehungsweise Hash festgelegt. Der Lockfile ist für Linux amd64 mit CPython 3.14. GitHub Actions prüft Quellcode, Secret-Scan, Freigabelogik und Docker-Build ohne echte Zugangsdaten.
+
+## Portable Weitergabe und Passwort-Reset
+
+Siehe [DISTRIBUTION.md](DISTRIBUTION.md) für die portable Weboberfläche unter Linux sowie Linux-Container-Umgebungen auf Windows, die verfügbaren Host-Adapter und den Reset ohne Einrichtungscode. Die portable Oberfläche bietet noch keine Windows-Hostaktionen. Passwortänderungen sind nach Anmeldung direkt auf `/password` möglich. Authentifizierungsdaten liegen getrennt in `/var/lib/kiagent-web/auth` beziehungsweise im portablen Volume. Eine Wiederherstellung dieser Daten reaktiviert alte Web-Zugänge; bei einer Wiederherstellung stattdessen einen administrativen Reset durchführen. Diese Web-Auth-Dateien sind nicht Teil der bisherigen täglichen Konfigurationssicherung.

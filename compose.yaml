@@ -90,10 +90,18 @@ services:
     environment:
       <<: *environment
       CONFIG_ORIGIN: ${CONFIG_ORIGIN:-http://127.0.0.1:8787}
+      CONFIG_AUTH_DIR: /var/lib/kiagent-web/auth
+      CONFIG_SETUP_ALLOWED_IP: ${CONFIG_SETUP_ALLOWED_IP:-127.0.0.1}
+      CONFIG_SETUP_PROXY: ${CONFIG_SETUP_PROXY:-0}
+      CONFIG_SETUP_LOCAL_ONLY: ${CONFIG_SETUP_LOCAL_ONLY:-0}
     mem_limit: 192m
     networks: [configuration-loopback]
     ports: ['127.0.0.1:8787:8080']
     volumes:
+      - type: bind
+        source: /var/lib/kiagent-web/auth
+        target: /var/lib/kiagent-web/auth
+        bind: {create_host_path: false}
       - type: bind
         source: /run/kiagent-config
         target: /run/kiagent-config

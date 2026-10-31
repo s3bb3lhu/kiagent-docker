@@ -1,0 +1,9 @@
+FROM python:3.14-slim@sha256:cd89c30eda26ee911a4611b18680086e0ea42e6f5f8cbe653d07fa7958c9cec8
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY requirements-web.lock /build/requirements-web.lock
+RUN python -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r /build/requirements-web.lock && mkdir -p /var/lib/kiagent-web && chown 10001:10001 /var/lib/kiagent-web
+COPY src/app/ /app/
+COPY host/config_store.py /app/config_store.py
+USER 10001:10001
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "--worker-tmp-dir", "/tmp", "--access-logfile", "/dev/null", "--log-level", "warning", "portable_web:create_app()"]

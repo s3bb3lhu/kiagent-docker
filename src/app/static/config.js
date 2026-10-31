@@ -18,6 +18,7 @@ async function load(quiet=false){
  controls(true);
  try{
   const data=await api('/api/overview');revision=data.revision;
+  const capability=document.querySelector('#capability-notice');capability.hidden=!data.capability_notice;capability.textContent=data.capability_notice||'';
   for(const [name,value]of Object.entries(data.public)){const input=form.elements.namedItem(name);if(input)input.value=value;}
   clearTokens();
   for(const key of ['telegram','discord','openai']){const badge=document.querySelector('#state-'+key);badge.textContent=data.configured[key]?'Eingerichtet':'Nicht eingerichtet';badge.classList.toggle('configured',data.configured[key]);}
@@ -55,6 +56,7 @@ form.addEventListener('submit',async event=>{
   const reply=await api('/api/config',{method:'POST',body:JSON.stringify(payload)});
   clearTokens();Object.values(payload.secrets).forEach(spec=>{if(spec.value)spec.value='';});
   if(reply.state==='unchanged'){controls(false);show('Keine Änderung erforderlich. Die vorhandenen Werte bleiben erhalten.','success');return;}
+  if(reply.state==='saved'){await load(true);show(reply.message,'success');return;}
   await poll(reply.job);
  }catch(error){show(error.message+' Falls die Verbindung unterbrochen wurde, lade die Seite neu und prüfe den Vorgang vor einer Wiederholung.','error');controls(false);}
 });

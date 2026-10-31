@@ -1,5 +1,9 @@
 *
 !Dockerfile
+!Dockerfile.portable
+!requirements-web.lock
+!host/
+!host/config_store.py
 !requirements.lock
 !src/
 !src/app/
