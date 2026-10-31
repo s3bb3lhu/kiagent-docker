@@ -28,7 +28,7 @@ Die Chat-Dienste laufen ohne root, mit schreibgeschütztem Dateisystem, ohne zus
 
 Der Host-Agent prüft die tatsächliche UNIX-Benutzerkennung der Verbindung. Telegram und Discord benutzen getrennte Benutzer und Audit-Namensräume. Discord prüft zusätzlich Benutzer, Server, Kanal und die gebundene Bestätigungsnachricht. Die Container erhalten Host-Messwerte ausschließlich über eine feste lesende Operation, ohne Host-Dateisystem-Mount.
 
-Eine allgemeine Root-Shell, Gameserver-Installation und eine Weboberfläche sind nicht enthalten. Der vorhandene interaktive Codex-CLI-Zugang bleibt ein separates Werkzeug auf dem Host; seine Anmeldung wird nicht übernommen oder eingecheckt.
+Eine allgemeine Root-Shell und Gameserver-Installation sind nicht enthalten. Eine eigene Konfigurationsoberfläche verwaltet Zugangsdaten und Freigaben über einen SSH-Tunnel. Der vorhandene interaktive Codex-CLI-Zugang bleibt ein separates Werkzeug auf dem Host; seine Anmeldung wird nicht übernommen oder eingecheckt.
 
 ## Voraussetzungen
 
@@ -46,20 +46,45 @@ Repository mit deinem eigenen GitHub-Zugang klonen oder als ZIP herunterladen. *
 sudo python3 tools/install.py
 ```
 
-Der Installer fragt die Zugangsdaten lokal ab und führt anschließend die vorbereitete Migration aus. Die drei Schritte lassen sich alternativ einzeln ausführen:
+Der Installer fragt die Zugangsdaten lokal ab und führt anschließend die vorbereitete Migration aus. Die Schritte lassen sich alternativ einzeln ausführen:
 
 ```bash
 sudo python3 tools/configure.py
 sudo python3 tools/install_host.py
+sudo python3 /opt/kiagent-docker/project/tools/install_web.py --before-activation
 sudo python3 /opt/kiagent-docker/project/tools/activate.py
 ```
 
 1. `configure.py` fragt IDs und Zugangsdaten ab. Tokens, API-Schlüssel und Ping-URLs werden unsichtbar eingegeben. Ein leerer OpenAI-Schlüssel lässt KI-Antworten deaktiviert; Status und freigegebene Aktionen funktionieren weiterhin. Leere Healthchecks-Felder überspringen die jeweiligen Pings.
 2. Konfiguration liegt ausschließlich unter `/etc/kiagent-docker/`. Das Verzeichnis und sein `secrets`-Unterverzeichnis sind nur für root zugänglich. Die einzeln eingebundenen Secret-Dateien sind für die gemeinsame Dienstgruppe lesbar und werden nur den benötigten Containern bereitgestellt. Compose-Secrets sind lokale Dateien, keine automatische Verschlüsselung auf dem Datenträger.
 3. `install_host.py` sichert die vorhandene Installation, erhält die SQLite-Datenbank und ihre Sperrzeiten, installiert die Host-Agenten und kehrt zunächst zu den bisherigen Chat-Diensten zurück. Bei einer bestehenden Installation müssen die eingegebenen Identitäten zu den bisherigen passen. Auf einer frischen Installation bleibt die Reparaturautomatik zunächst ausgeschaltet.
-4. `activate.py` baut zuerst das Image. Erst dann stoppt es die alten Chat-Dienste und wartet auf drei gesunde Container. Bei einem Fehler werden die alten Chat-Dienste wieder gestartet. Alte Zugangsdaten, Dienste und Datenbanken werden nicht gelöscht.
+4. `activate.py` baut zuerst das Image. Erst dann stoppt es die alten Chat-Dienste und wartet auf die gesunden Chat- und Heartbeat-Container. Bei einem Fehler werden die alten Chat-Dienste wieder gestartet. Alte Zugangsdaten, Dienste und Datenbanken werden nicht gelöscht.
 
 Der Installer überschreibt keine vorhandene Docker-Projektinstallation. Updates werden gezielt vorbereitet; es gibt keinen unbeaufsichtigten Selbst-Update-Mechanismus.
+
+## Konfigurationsseite im Browser
+
+Bei einer Neuinstallation fragt der Installer zusätzlich nach einem eigenen Web-Administratorpasswort mit mindestens 16 Zeichen. Bei einer bestehenden Docker-Installation wird die Oberfläche aus dem geprüften neuen Projektstand ergänzt:
+
+```bash
+sudo python3 tools/install_web.py
+```
+
+Der Installer baut ein separates Web-Image, sichert den bisherigen Stand und startet die Oberfläche. Die vorhandenen Bot-Tokens werden dabei nicht verändert. Das Passwort wird verdeckt im Server-Terminal eingegeben und nicht ausgegeben. Es wird nur als gesalzener Passwort-Hash gespeichert.
+
+Öffne anschließend auf deinem eigenen Computer einen Tunnel und lasse das Terminal geöffnet:
+
+```bash
+ssh -N -L 8787:127.0.0.1:8787 seb@DEIN-SERVER
+```
+
+Rufe [http://127.0.0.1:8787](http://127.0.0.1:8787) auf und melde dich mit deinem Web-Passwort an. Die Oberfläche ist ausschließlich an die Loopback-Adresse des Servers gebunden. Es wird kein öffentlicher Web-Port und keine Domain benötigt. Ein SSH-Schlüssel mit der Option `restrict` erlaubt diesen Tunnel möglicherweise nicht; nutze deinen bisherigen regulären SSH-Zugang. Der Installer ändert keine SSH-Einstellungen.
+
+Die Seite erklärt direkt neben den Feldern, wo Telegram- und Discord-Bot-Tokens, der optionale OpenAI-API-Schlüssel, beide optionalen Healthchecks-Ping-URLs und die benötigten IDs zu finden sind. Gespeicherte Tokens werden niemals wieder an den Browser geschickt. Leere Token-Felder behalten vorhandene Werte bei; optionale Schlüssel können ausdrücklich entfernt werden.
+
+Beim Speichern prüft der feste Host-Dienst Eingaben und geänderte Bot-Anmeldungen, erstellt eine rootgeschützte Sicherung und lädt die betroffenen Dienste kontrolliert neu. Chat-Bots und Lebenszeichen können dabei kurz unterbrochen sein. Aktive oder unklare Reparatur-/Paketaktionen verhindern die Änderung. Historie und Sperrzeiten werden beibehalten. Bei einem Startfehler wird die vorherige Konfiguration wiederhergestellt; ein unterbrochener Vorgang wird nicht automatisch wiederholt und muss per SSH geprüft werden. Eine erfolgreiche Übernahme bestätigt keine umfassende Funktionsprüfung aller externen Anbieter.
+
+Die Konfigurationsseite hat weder Docker-Socket noch direkten Zugriff auf die Bot-Schlüssel. Ein eigener Host-Dienst akzeptiert über einen Unix-Socket ausschließlich die festgelegten Konfigurationsoperationen vom getrennten Dienstbenutzer. Der normale Desktop- oder Chat-Zugang erhält keine Root-Shell.
 
 ## Prüfung
 

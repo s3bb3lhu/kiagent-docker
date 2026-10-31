@@ -10,7 +10,7 @@ PATTERNS = [re.compile(r'sk-[A-Za-z0-9_-]{20,}'),
     re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----'),
     re.compile(r'https://hc-ping\.com/[a-fA-F0-9]{8}-[a-fA-F0-9-]{27,}'),
     re.compile(r'\b(?:ghp_|github_pat_)[A-Za-z0-9_]{20,}')]
-FORBIDDEN_NAMES = {'auth.json','deployment.env','.env','discord-token','telegram-token','openai-api-key'}
+FORBIDDEN_NAMES = {'auth.json','deployment.env','.env','discord-token','telegram-token','openai-api-key','web-admin-hash','web-session-key'}
 
 def findings(root=ROOT):
     result = []

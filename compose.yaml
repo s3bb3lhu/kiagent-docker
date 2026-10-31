@@ -82,6 +82,30 @@ services:
       timeout: 5s
       retries: 3
       start_period: 75s
+  config-web:
+    <<: *common
+    image: kiagent-config:local
+    user: ${CONFIG_UID:?Run tools/install_web.py first}:${CONFIG_GID:?Run tools/install_web.py first}
+    command: [gunicorn, --bind, '0.0.0.0:8080', --workers, '1', --threads, '4', --timeout, '30', --worker-tmp-dir, /tmp, --log-level, warning, --access-logfile, /dev/null, 'config_web:create_app()']
+    environment:
+      <<: *environment
+      CONFIG_ORIGIN: ${CONFIG_ORIGIN:-http://127.0.0.1:8787}
+    mem_limit: 192m
+    networks: [configuration]
+    ports: ['127.0.0.1:8787:8080']
+    volumes:
+      - type: bind
+        source: /run/kiagent-config
+        target: /run/kiagent-config
+        read_only: true
+        bind: {create_host_path: false}
+    secrets: [web-admin-hash, web-session-key]
+    healthcheck:
+      test: [CMD, python, -B, /app/config_web_health.py]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
 
 secrets:
   telegram-token: {file: '${KIAGENT_SECRETS_DIR:?}/telegram-token'}
@@ -91,3 +115,9 @@ secrets:
   openai-api-key: {file: '${KIAGENT_SECRETS_DIR:?}/openai-api-key'}
   hc-bot: {file: '${KIAGENT_SECRETS_DIR:?}/hc-bot'}
   hc-server: {file: '${KIAGENT_SECRETS_DIR:?}/hc-server'}
+  web-admin-hash: {file: '${KIAGENT_SECRETS_DIR:?}/web-admin-hash'}
+  web-session-key: {file: '${KIAGENT_SECRETS_DIR:?}/web-session-key'}
+
+networks:
+  configuration:
+    internal: true

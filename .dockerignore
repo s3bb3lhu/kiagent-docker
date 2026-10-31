@@ -4,3 +4,8 @@
 !src/
 !src/app/
 !src/app/*.py
+!src/app/templates/
+!src/app/templates/*.html
+!src/app/static/
+!src/app/static/*.css
+!src/app/static/*.js

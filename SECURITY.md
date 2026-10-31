@@ -9,3 +9,9 @@
 - UNIX-Peer-Authentifizierung setzt unveränderte Host-UIDs voraus. Kein Rootless-/UID-Remapping-Workaround wird automatisch angewendet.
 - Lokale Sicherungen enthalten Geheimnisse und bleiben rootgeschützt. Nur der bereinigte Programmquellstand gehört nach GitHub.
 - Bestehende Schlüssel werden durch diesen Export weder widerrufen noch aus der laufenden Serverinstallation gelöscht. Falls ein Schlüssel außerhalb dieser Installation veröffentlicht wurde, muss er beim jeweiligen Anbieter separat rotiert werden.
+
+- Die Konfigurationsseite lauscht nur auf Server-Loopback; Zugriff über einen SSH-Tunnel und zusätzlich ein eigenes Web-Passwort. Sie darf nicht ungeprüft durch einen öffentlichen Proxy veröffentlicht werden.
+- Passwort-Hash, Sitzungsschlüssel und Anbieter-Tokens liegen nur auf dem Zielserver. Der Browser erhält für gespeicherte Tokens ausschließlich den Status „eingerichtet“, niemals den bisherigen Wert.
+- Die Web-App läuft als eigener unprivilegierter Benutzer ohne Docker-Socket. Der Root-Konfigurationsdienst hat feste Eingabefelder, feste Dateiziele und feste Dienstaktionen; Modelltext und Formulare können keine beliebigen Befehle ausführen.
+- Schreibzugriffe erfordern Anmeldung, CSRF-Prüfung, passenden Host/Origin und aktuellen Konfigurationsstand. Die Seite lädt keine externen Skripte oder Schriftarten. Sitzungen laufen nach 30 Minuten ab.
+- Sicherungen enthalten auch alte Schlüssel. Ein Rollback macht eine beim Anbieter widerrufene Zugangsdaten-Version nicht wieder gültig. Bei unterbrochener Übernahme oder fehlgeschlagener Wiederherstellung bleiben weitere Änderungen bis zur Prüfung per SSH gesperrt.

@@ -14,6 +14,7 @@ def main():
     if not Path('/etc/kiagent-docker/deployment.env').exists():
         subprocess.run([sys.executable,str(source/'tools/configure.py')],check=True)
     subprocess.run([sys.executable,str(source/'tools/install_host.py')],check=True)
+    subprocess.run([sys.executable,'/opt/kiagent-docker/project/tools/install_web.py','--before-activation'],check=True)
     subprocess.run([sys.executable,'/opt/kiagent-docker/project/tools/activate.py'],check=True)
     print('Installation abgeschlossen. Jetzt /status und /automatik_status in Telegram und Discord pruefen.')
 

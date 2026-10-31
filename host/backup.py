@@ -28,7 +28,7 @@ WORK=STATE/'work'
 STATUS=STATE/'status.json'
 DATABASE=Path('/var/lib/kiagent-executor/history.sqlite3')
 DIRECTORIES=(Path('/opt/kiagent-docker/project/src/app'),Path('/opt/kiagent/executor'),
-             Path('/etc/kiagent-docker'),Path('/usr/local/lib/kiagent-heartbeat'))
+             Path('/etc/kiagent-docker'),Path('/usr/local/lib/kiagent-heartbeat'),Path('/usr/local/lib/kiagent-config'))
 REQUIRED_FILES=(Path('/etc/mdadm/mdadm.conf'),Path('/usr/local/sbin/kiagent-mdadm-alert'),
                 Path('/opt/kiagent-docker/project/compose.yaml'),Path('/opt/kiagent-docker/project/requirements.lock'),Path('/opt/kiagent-docker/project/Dockerfile'),Path('/etc/os-release'),
                 Path('/usr/local/lib/kiagent-backup/backup.py'))
