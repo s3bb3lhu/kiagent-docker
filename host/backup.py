@@ -93,7 +93,8 @@ def copy_regular(source,target):
 
 def sources():
     selected=set()
-    for directory in DIRECTORIES:
+    optional=tuple(path for path in (Path('/etc/letsencrypt/accounts'),Path('/etc/letsencrypt/archive'),Path('/etc/letsencrypt/renewal')) if path.exists())
+    for directory in DIRECTORIES+optional:
         secure(directory,directory=True)
         for root,dirs,files in os.walk(directory,followlinks=False):
             base=Path(root);secure(base,directory=True)
@@ -105,6 +106,8 @@ def sources():
         # os-release is commonly an OS-managed symlink. Store its resolved file
         # contents at the conventional name, with the real source in the manifest.
         selected.add(path.resolve(strict=True) if path==Path('/etc/os-release') else path)
+    for path in (Path('/etc/nginx/sites-available/kiagent-config'),Path('/etc/letsencrypt/cli.ini')):
+        if path.exists():selected.add(path)
     systemd=Path('/etc/systemd/system')
     for pattern in ('kiagent*.service','kiagent*.timer','kiagent*.service.d/*.conf','kiagent*.timer.d/*.conf'):
         selected.update(systemd.glob(pattern))

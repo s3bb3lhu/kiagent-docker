@@ -50,6 +50,8 @@ def main():
     if sys.argv[1:] not in ([],['--before-activation']):
         raise SystemExit('Unerwartete Argumente.')
     before_activation = sys.argv[1:] == ['--before-activation']
+    if 'CONFIG_ORIGIN=https://' in (CONFIG/'deployment.env').read_text():
+        raise SystemExit('HTTPS bereits eingerichtet. Zum Aktualisieren install_https.py verwenden; keine Rueckstufung auf HTTP.')
     if not before_activation:
         # Recover the existing stack first after a prior installer rollback.
         run(['/usr/bin/systemctl','start','kiagent-docker.service'])

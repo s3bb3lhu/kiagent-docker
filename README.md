@@ -86,6 +86,22 @@ Beim Speichern prüft der feste Host-Dienst Eingaben und geänderte Bot-Anmeldun
 
 Die Konfigurationsseite hat weder Docker-Socket noch direkten Zugriff auf die Bot-Schlüssel. Ein eigener Host-Dienst akzeptiert über einen Unix-Socket ausschließlich die festgelegten Konfigurationsoperationen vom getrennten Dienstbenutzer. Der normale Desktop- oder Chat-Zugang erhält keine Root-Shell.
 
+### Direkter HTTPS-Zugang ohne Tunnel
+
+Alternativ kann die Oberfläche direkt auf dem Server über dessen öffentliche IPv4-Adresse bereitgestellt werden. Dazu nach der Web-Grundinstallation aus dem geprüften Projektstand ausführen:
+
+```bash
+sudo python3 tools/install_https.py --address DEINE-OEFFENTLICHE-IP
+```
+
+TCP 80 und 443 müssen in der vorgeschalteten Firewall erreichbar sein. Port 8787 bleibt ausschließlich lokal gebunden. Der Installer richtet nginx als HTTPS-Eingang ein, fragt im Terminal nach Zustimmung zu den Let's-Encrypt-Bedingungen und fordert ein vertrauenswürdiges IP-Zertifikat an. Certbot 5.9.0 wird dafür aus PyPI in einer separaten rootgeschützten Umgebung installiert, da das Ubuntu-Paket IP-Zertifikate noch nicht unterstützt. Die Anmeldung verwendet weiterhin das vorhandene Web-Passwort; gespeicherte Bot-Tokens werden nicht verändert.
+
+Die Zertifikate gelten sechs Tage. Der Installer prüft die Erneuerung mit einem Probelauf und aktiviert anschließend `kiagent-certbot.timer` mit einer Prüfung alle sechs Stunden. TCP 80 bleibt für die automatische Zertifikatsprüfung erreichbar; andere HTTP-Anfragen werden auf HTTPS umgeleitet. Öffne nach erfolgreichem Abschluss `https://DEINE-OEFFENTLICHE-IP`. Sichere Cookies, die genaue HTTPS-Adresse und CSRF-Prüfungen schützen Schreibzugriffe; nginx begrenzt zusätzliche Anmeldeversuche. Die Oberfläche ist dann öffentlich erreichbar, die Konfiguration erfordert weiterhin die Anmeldung.
+
+Sicherungen vor der Umstellung liegen rootgeschützt unter `/var/backups/kiagent-https-*`. Bei einem Installationsfehler werden Web-Image und Konfiguration zurückgesetzt. Installierte nginx-/Certbot-Pakete und ausgestellte Zertifikate werden nicht automatisch gelöscht. Die täglichen Sicherungen erfassen zusätzlich die verwaltete nginx-Datei, Zertifikatsarchive und Erneuerungskonfiguration. Eine Wiederherstellung auf einem neuen Server benötigt die Prüfung beziehungsweise Neuausstellung der Zertifikate.
+
+Der bestehende Konfigurationsdienst bleibt die feste Schnittstelle für weitere Funktionen. Neue Serveraktionen benötigen jeweils eine eigene geprüfte Freigabe; ein Formular oder KI-Text kann keine beliebigen Root-Befehle ausführen.
+
 ## Prüfung
 
 ```bash

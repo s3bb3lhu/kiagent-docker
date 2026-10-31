@@ -78,5 +78,23 @@ class WebTests(unittest.TestCase):
         result = self.client.post('/login',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'password':self.password})
         self.assertEqual(result.status_code,429)
 
+    def test_https_proxy_fixed_host_secure_cookie_and_origin(self):
+        origin = 'https://192.0.2.10'
+        app = create_app(Path(self.temporary.name),lambda data:{'ok':True},origin)
+        client = app.test_client()
+        # TLS terminates at the proxy; the backend connection is HTTP.
+        page = client.get('/login',base_url='http://192.0.2.10')
+        self.assertEqual(page.status_code,200)
+        self.assertIn('Secure;',page.headers['Set-Cookie'])
+        self.assertIn('Strict-Transport-Security',page.headers)
+        csrf = re.search(r'name="csrf" value="([^"]+)"',page.text)[1]
+        self.assertEqual(client.post('/login',base_url='https://192.0.2.10',headers={'Origin':origin},data={'csrf':csrf,'password':self.password}).status_code,302)
+        self.assertEqual(client.post('/logout',base_url=origin,headers={'Origin':'http://192.0.2.10'},data={'csrf':csrf}).status_code,403)
+        self.assertEqual(client.get('/login',base_url='http://evil.example',headers={'X-Forwarded-Host':'192.0.2.10'}).status_code,400)
+
+    def test_public_plain_http_origin_rejected(self):
+        with self.assertRaises(ValueError):
+            create_app(Path(self.temporary.name),origin='http://192.0.2.10')
+
 if __name__ == '__main__':
     unittest.main()

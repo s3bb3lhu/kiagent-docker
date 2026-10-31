@@ -60,12 +60,15 @@ def create_app(credentials=None,backend=exchange,origin=None):
     credentials = Path(credentials or os.environ.get('CREDENTIALS_DIRECTORY','/run/secrets'))
     origin = origin or os.environ.get('CONFIG_ORIGIN','http://127.0.0.1:8787')
     parsed = urlsplit(origin)
-    if parsed.scheme != 'http' or parsed.hostname != '127.0.0.1' or parsed.path or parsed.query or parsed.fragment or parsed.port is None:
-        raise ValueError('Only explicit loopback SSH-tunnel origin supported')
+    loopback = parsed.scheme == 'http' and parsed.hostname == '127.0.0.1' and parsed.port is not None
+    public_tls = parsed.scheme == 'https' and bool(parsed.hostname) and parsed.port in (None,443)
+    if not (loopback or public_tls) or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
+        raise ValueError('Explicit loopback or HTTPS origin required')
     app = Flask(__name__)
     app.config.update(SECRET_KEY=(credentials/'web-session-key').read_text().strip(),
         MAX_CONTENT_LENGTH=32000,SESSION_COOKIE_HTTPONLY=True,SESSION_COOKIE_SAMESITE='Strict',
-        SESSION_COOKIE_NAME='kiagent_config',PERMANENT_SESSION_LIFETIME=timedelta(minutes=30))
+        SESSION_COOKIE_NAME='kiagent_config',SESSION_COOKIE_SECURE=public_tls,
+        PERMANENT_SESSION_LIFETIME=timedelta(minutes=30))
     salt,expected = (credentials/'web-admin-hash').read_text().strip().split('$',1)
     failures = collections.deque()
     rate_lock = threading.Lock()
@@ -77,7 +80,8 @@ def create_app(credentials=None,backend=exchange,origin=None):
 
     @app.before_request
     def check_request():
-        if request.host_url.rstrip('/') != origin:
+        # The TLS proxy passes a fixed Host. Never trust client-supplied forwarded headers.
+        if request.host != parsed.netloc:
             abort(400)
         if request.method not in {'GET','HEAD','POST'}:
             abort(405)
@@ -89,6 +93,8 @@ def create_app(credentials=None,backend=exchange,origin=None):
 
     @app.after_request
     def headers(response):
+        if public_tls:
+            response.headers['Strict-Transport-Security'] = 'max-age=86400'
         response.headers.update({'Cache-Control':'no-store','Pragma':'no-cache',
             'X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'no-referrer',
             'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"})

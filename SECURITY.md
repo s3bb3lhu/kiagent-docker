@@ -10,7 +10,7 @@
 - Lokale Sicherungen enthalten Geheimnisse und bleiben rootgeschützt. Nur der bereinigte Programmquellstand gehört nach GitHub.
 - Bestehende Schlüssel werden durch diesen Export weder widerrufen noch aus der laufenden Serverinstallation gelöscht. Falls ein Schlüssel außerhalb dieser Installation veröffentlicht wurde, muss er beim jeweiligen Anbieter separat rotiert werden.
 
-- Die Konfigurationsseite lauscht nur auf Server-Loopback; Zugriff über einen SSH-Tunnel und zusätzlich ein eigenes Web-Passwort. Sie darf nicht ungeprüft durch einen öffentlichen Proxy veröffentlicht werden.
+- Die Docker-Konfigurationsseite lauscht nur auf Server-Loopback. Zugriff erfolgt über SSH-Tunnel oder den gesonderten, geprüften nginx-HTTPS-Installer mit eigenem Web-Passwort. Beim HTTPS-Betrieb wird ausschließlich die konfigurierte öffentliche Adresse akzeptiert; ungeprüfte Forwarded-Header werden nicht vertraut. Port 8787 bleibt lokal.
 - Passwort-Hash, Sitzungsschlüssel und Anbieter-Tokens liegen nur auf dem Zielserver. Der Browser erhält für gespeicherte Tokens ausschließlich den Status „eingerichtet“, niemals den bisherigen Wert.
 - Die Web-App läuft als eigener unprivilegierter Benutzer ohne Docker-Socket. Der Root-Konfigurationsdienst hat feste Eingabefelder, feste Dateiziele und feste Dienstaktionen; Modelltext und Formulare können keine beliebigen Befehle ausführen.
 - Schreibzugriffe erfordern Anmeldung, CSRF-Prüfung, passenden Host/Origin und aktuellen Konfigurationsstand. Die Seite lädt keine externen Skripte oder Schriftarten. Sitzungen laufen nach 30 Minuten ab.
