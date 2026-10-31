@@ -11,6 +11,9 @@ from datetime import datetime,timezone
 from pathlib import Path
 from install_web import SOURCE,PROJECT,CONFIG,COMPOSE,atomic,run
 from install_packages import idle
+import sys
+sys.path.insert(0,str(SOURCE/'src/app'))
+from release_version import VERSION
 
 def main():
     if os.geteuid()!=0:raise SystemExit('Bitte mit sudo ausfuehren.')
@@ -20,6 +23,7 @@ def main():
             raise SystemExit('Host-Dienst weicht vom Projekt ab. Keine Aenderung.')
     idle()
     run(['/usr/bin/python3',str(SOURCE/'tools/scan_secrets.py')])
+    run(['/usr/bin/python3','-B',str(SOURCE/'tools/release_check.py')])
     run(['/usr/bin/systemctl','is-active','--quiet','kiagent-config','kiagent-docker','kiagent-executor','kiagent-packages'])
     run(['/usr/bin/systemctl','start','kiagent-backup.service'])
     run(['/usr/bin/python3',str(SOURCE/'tools/test_docker.py')])
@@ -86,7 +90,7 @@ print('Host clock and CPU cores: OK')
         for lang in ('de','en','es','fr'):
             with opener.open(env['CONFIG_ORIGIN']+'/login?lang='+lang,timeout=15) as response:
                 text=response.read().decode()
-                if response.headers.get('Content-Language')!=lang or 'Crimson Glass' not in text or 'Ruby Control' not in text:raise ValueError('Design-/Sprachseite nicht bereit.')
+                if response.headers.get('Content-Language')!=lang or 'Crimson Glass' not in text or 'Ruby Control' not in text or 'v'+VERSION not in text:raise ValueError('Design-/Sprach-/Versionsseite nicht bereit.')
         run(['/usr/bin/systemctl','is-active','--quiet','kiagent-config','kiagent-docker','kiagent-executor','kiagent-packages'])
     except BaseException:
         if changed:
@@ -99,7 +103,7 @@ print('Host clock and CPU cores: OK')
         subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','180','telegram','discord','config-web'])
         raise
     finally:maintenance.unlink(missing_ok=True)
-    report={'result':'success','checked_utc':datetime.now(timezone.utc).isoformat(),'backup':str(backup),'styles':['ruby','glass'],'colors':['red','blue','green','purple','anthracite'],'modes':['light','dark'],'host_clock_and_cores_verified':True,'readonly_activity_verified':True,'secrets_or_password_changed':False,'host_action_executed':False}
+    report={'result':'success','version':VERSION,'documentation_languages':['de','en','es','fr'],'logo':'connected-s','checked_utc':datetime.now(timezone.utc).isoformat(),'backup':str(backup),'styles':['ruby','glass'],'colors':['red','blue','green','purple','anthracite'],'modes':['light','dark'],'host_clock_and_cores_verified':True,'readonly_activity_verified':True,'secrets_or_password_changed':False,'host_action_executed':False}
     user=pwd.getpwnam(os.environ.get('SUDO_USER','root'))
     if user.pw_uid!=0:
         path=Path(user.pw_dir)/'kiagent-ui-upgrade-result.json';atomic(path,json.dumps(report,indent=2).encode(),0o600);os.chown(path,user.pw_uid,user.pw_gid)

@@ -175,6 +175,8 @@ ROWS.update({
  'discord':('Discord','Discord','Discord','Discord'),
 })
 
+ROWS.update({'product_name': ('Serversteuerung', 'Server Control', 'Control del servidor', 'Contrôle serveur'), 'documentation': ('Dokumentation', 'Documentation', 'Documentación', 'Documentation'), 'documentation_intro': ('Anleitungen nach Einstellung und Funktion – mit Einrichtung, offiziellen Token-Links und Hilfe für den laufenden Betrieb.', 'Guides organized by setting and feature, including setup, official token links and day-to-day operation.', 'Guías por ajuste y función, con configuración, enlaces oficiales a tokens y ayuda para el uso diario.', 'Guides classés par paramètre et fonction, avec configuration, liens officiels des tokens et aide à l’exploitation.'), 'doc_commands': ('Befehle für Administratoren', 'Administrator commands', 'Comandos del administrador', 'Commandes administrateur'), 'doc_commands_notice': ('Diese Beispiele werden hier nicht ausgeführt. Im eigenen Server-Terminal und nur im beschriebenen Kontext verwenden. Platzhalter zuerst ersetzen.', 'These examples are not executed here. Use them in your own server terminal only in the described context. Replace placeholders first.', 'Estos ejemplos no se ejecutan aquí. Úsalos en tu terminal del servidor solo en el contexto descrito. Sustituye antes los marcadores.', 'Ces exemples ne sont pas exécutés ici. Utilisez-les dans votre terminal serveur uniquement dans le contexte décrit. Remplacez d’abord les paramètres fictifs.')})
+
 def catalog(lang):
     index=tuple(LANGUAGES).index(lang if lang in LANGUAGES else 'de')
     return {key:values[index] for key,values in ROWS.items()}

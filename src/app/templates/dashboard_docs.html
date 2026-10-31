@@ -1,0 +1,15 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+<p class="eyebrow">{{ t('settings') }} / {{ t('documentation') }} · v{{ version }}</p>
+<h1>{{ document.title if document else t('documentation') }}</h1>
+{% if document %}
+<p><a href="/settings/documentation">← {{ t('documentation') }}</a> · {{ document.category_title }}</p>
+<article class="card doc-article"><ol>{% for step in document.steps %}<li><p>{{ step }}</p></li>{% endfor %}</ol>
+{% if document.commands %}<h2>{{ t('doc_commands') }}</h2><p class="fine">{{ t('doc_commands_notice') }}</p>{% for command in document.commands %}<pre><code>{{ command }}</code></pre>{% endfor %}{% endif %}
+{% if document.links %}<h2>{{ t('official_docs') }}</h2><ul>{% for label,link in document.links %}<li><a href="{{ link }}" target="_blank" rel="noopener noreferrer">{{ label }} ↗</a></li>{% endfor %}</ul>{% endif %}
+</article>
+{% else %}
+<p class="muted">{{ t('documentation_intro') }}</p>
+<div class="doc-categories">{% for category in doc_categories %}<section class="card"><h2>{{ category.title }}</h2><ul class="doc-list">{% for doc in category.documents %}<li><a href="/settings/documentation/{{ doc.slug }}"><span>{{ doc.title }}</span><span aria-hidden="true">↗</span></a></li>{% endfor %}</ul></section>{% endfor %}</div>
+{% endif %}
+{% endblock %}

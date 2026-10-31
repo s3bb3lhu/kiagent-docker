@@ -1,0 +1,33 @@
+# Release preparation — 1.0.0.0
+
+The repository is the source distribution. Never distribute a live host export, `/etc/kiagent-docker`, Docker volumes, SSH keys, auth files, databases, logs or backup archives. Users supply their own service credentials.
+
+## Source verification
+
+```bash
+python3 -B tools/release_check.py
+python3 -B -m unittest discover -s tests -v
+sudo python3 tools/test_docker.py
+sudo python3 tools/test_portable.py
+```
+
+GitHub Actions runs the isolated builds and tests using fixture credentials. It also checks the version and localized manual. The source check is not a guarantee that every possible secret format has been detected; review the complete Git history before changing repository visibility.
+
+## Product version
+
+`src/app/release_version.py` is the application value. `VERSION`, the OCI version labels and generated manual must agree. Versions use four numeric components as requested, starting at **1.0.0.0**. No automatic increments or update execution are provided.
+
+## Manual
+
+The authenticated portal includes **Settings → Documentation**. Repository copies are in [Deutsch](docs/de/README.md), [English](docs/en/README.md), [Español](docs/es/README.md) and [Français](docs/fr/README.md). Edit `src/app/user_docs.py`, then run `python3 tools/export_docs.py`; CI rejects stale exports.
+
+## Before publishing
+
+- Selected logo: C, connected server links. The SVG uses the active accent and the wordmark uses the selected language; verify final layout on the deployed UI.
+- Complete the isolated full and portable Docker tests for the final commit.
+- Review source and Git history for credentials and deployment-specific data.
+- Choose distribution/license terms before granting third parties reuse rights. No open-source license is assumed or silently assigned by this preparation.
+- Confirm the supported-platform limitations in README and DISTRIBUTION.
+- Create the intended GitHub release/tag only from that final verified commit, using the changelog as release notes.
+
+Preparation does not make the repository public, upload container images to a registry, or create a release tag. The existing private repository and deployed service remain independent of that publication step.

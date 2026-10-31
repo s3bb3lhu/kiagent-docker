@@ -17,6 +17,8 @@ from flask import Flask, abort, jsonify, redirect, render_template as original_r
 from werkzeug.exceptions import HTTPException
 from web_auth import AuthStore,POLICY,valid_password
 from web_i18n import LANGUAGES,catalog
+from release_version import VERSION
+from user_docs import categories,documents
 
 def language():
     value=request.args.get('lang',request.cookies.get('kiagent_language','de'))
@@ -104,7 +106,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     @app.context_processor
     def ui_context():
         lang=language();words=catalog(lang)
-        return {'lang':lang,'ui':words,'t':lambda key:words.get(key,key),'languages':LANGUAGES,
+        return {'lang':lang,'ui':words,'t':lambda key:words.get(key,key),'languages':LANGUAGES,'version':VERSION,
                 'theme':request.cookies.get('kiagent_theme','light') if request.cookies.get('kiagent_theme') in {'light','dark'} else 'light',
                 'csrf':csrf(),'public_address':origin,'auth_mode':None,
                 'design':request.cookies.get('kiagent_design','ruby') if request.cookies.get('kiagent_design') in {'ruby','glass'} else 'ruby',
@@ -258,6 +260,18 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     @app.get('/settings')
     @authenticated
     def settings_page():return render_template('dashboard_settings.html',csrf=csrf(),page_active='settings')
+
+    @app.get('/settings/documentation')
+    @authenticated
+    def documentation_page():
+        return render_template('dashboard_docs.html',csrf=csrf(),page_active='settings',doc_categories=categories(language()),document=None)
+
+    @app.get('/settings/documentation/<slug>')
+    @authenticated
+    def documentation_article(slug):
+        document=next((row for row in documents(language()) if row['slug']==slug),None)
+        if document is None:abort(404)
+        return render_template('dashboard_docs.html',csrf=csrf(),page_active='settings',doc_categories=categories(language()),document=document)
 
     @app.get('/settings/<provider>')
     @authenticated

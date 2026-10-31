@@ -1,4 +1,8 @@
-# Kiagent – Docker für Telegram und Discord
+# Serversteuerung / Server Control — Kiagent Docker
+
+**Version 1.0.0.0 wird für die erste Veröffentlichung vorbereitet.**
+
+Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md). In der angemeldeten Oberfläche: **Einstellungen → Dokumentation**. Veröffentlichungsstand und Grenzen: [RELEASE.md](RELEASE.md) und [CHANGELOG.md](CHANGELOG.md).
 
 Private, selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Sie werden bei der Installation lokal eingegeben.
 
@@ -28,7 +32,7 @@ Die Chat-Dienste laufen ohne root, mit schreibgeschütztem Dateisystem, ohne zus
 
 Der Host-Agent prüft die tatsächliche UNIX-Benutzerkennung der Verbindung. Telegram und Discord benutzen getrennte Benutzer und Audit-Namensräume. Discord prüft zusätzlich Benutzer, Server, Kanal und die gebundene Bestätigungsnachricht. Die Container erhalten Host-Messwerte ausschließlich über eine feste lesende Operation, ohne Host-Dateisystem-Mount.
 
-Eine allgemeine Root-Shell und Gameserver-Installation sind nicht enthalten. Eine eigene Konfigurationsoberfläche verwaltet Zugangsdaten und Freigaben über einen SSH-Tunnel. Der vorhandene interaktive Codex-CLI-Zugang bleibt ein separates Werkzeug auf dem Host; seine Anmeldung wird nicht übernommen oder eingecheckt.
+Eine allgemeine Root-Shell und Gameserver-Installation sind nicht enthalten. Eine eigene Konfigurationsoberfläche verwaltet Zugangsdaten und Freigaben über einen SSH-Tunnel oder den eingerichteten HTTPS-Eingang. Die SSH Console zeigt Aktivitäten ausschließlich lesend. Der vorhandene interaktive Codex-CLI-Zugang bleibt ein separates Werkzeug auf dem Host; seine Anmeldung wird nicht übernommen oder eingecheckt.
 
 ## Voraussetzungen
 

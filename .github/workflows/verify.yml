@@ -12,6 +12,8 @@ jobs:
           persist-credentials: false
       - name: Scan source for credentials
         run: python3 tools/scan_secrets.py
+      - name: Verify version and localized documentation
+        run: python3 -B tools/release_check.py
       - name: Prepare test identity on disposable runner
         run: sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin kiagent
       - name: Build and test without credentials or live bots
