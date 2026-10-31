@@ -43,6 +43,12 @@ Eine allgemeine Root-Shell, Gameserver-Installation und eine Weboberfläche sind
 Repository mit deinem eigenen GitHub-Zugang klonen oder als ZIP herunterladen. **Keine Tokens in Clone-URLs eintragen.** Die folgenden Schritte laufen im Server-Terminal im Projektverzeichnis.
 
 ```bash
+sudo python3 tools/install.py
+```
+
+Der Installer fragt die Zugangsdaten lokal ab und führt anschließend die vorbereitete Migration aus. Die drei Schritte lassen sich alternativ einzeln ausführen:
+
+```bash
 sudo python3 tools/configure.py
 sudo python3 tools/install_host.py
 sudo python3 /opt/kiagent-docker/project/tools/activate.py
