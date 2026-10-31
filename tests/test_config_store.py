@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+import configparser
 from pathlib import Path
 from unittest.mock import patch
 
@@ -93,6 +94,22 @@ class ConfigStoreTests(unittest.TestCase):
             with self.assertRaisesRegex(Invalid,'interrupted'):
                 broker.handle({'op':'save','data':request(self.store)})
             apply.assert_not_called()
+
+    def test_saving_credentials_does_not_stop_the_web_service(self):
+        unit=configparser.ConfigParser(interpolation=None)
+        unit.read(ROOT/'host/systemd/kiagent-docker.service')
+        requires=unit['Unit']['Requires'].split()
+        web={'running':True}
+        def system(command,timeout=240):
+            if command[:2]==['/usr/bin/systemctl','stop'] and any(agent in requires for agent in command[2:]):
+                web['running']=False
+            return ''
+        data=request(self.store);data['secrets']['openai']={'mode':'clear'}
+        backups=Path(self.temporary.name)/'lifecycle-backups';backups.mkdir()
+        with patch.object(config_broker,'BACKUPS',backups),patch.object(config_broker,'check_logins'),patch.object(config_broker,'durable_state',return_value={'same':True}),patch.object(config_broker,'barrier'),patch.object(config_broker,'run',side_effect=system),patch.object(config_broker.time,'sleep'),patch('config_store.os.fchown'):
+            result=config_broker.apply_configuration(self.store,self.store.prepare(data),lambda value:None)
+        self.assertEqual(result,'success')
+        self.assertTrue(web['running'],'Stopping host agents propagated to the whole Compose stack')
 
 if __name__ == '__main__':
     unittest.main()

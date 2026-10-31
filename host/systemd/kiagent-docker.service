@@ -1,8 +1,8 @@
 [Unit]
 Description=Kiagent Telegram and Discord containers
-Requires=docker.service kiagent-executor.service kiagent-packages.service
+Requires=docker.service
 After=docker.service kiagent-executor.service kiagent-packages.service kiagent-config.service network-online.target
-Wants=network-online.target kiagent-config.service
+Wants=network-online.target kiagent-config.service kiagent-executor.service kiagent-packages.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes

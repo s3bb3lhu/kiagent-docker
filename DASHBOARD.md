@@ -33,3 +33,7 @@ sudo python3 tools/install_dashboard.py
 Der Installer sichert den Stand, baut und testet die Images mit isolierten Beispieldaten, aktualisiert Web-Image und begrenzten Konfigurationsdienst und prüft Host-Messwerte sowie lesende Agentenaufrufe. Das vorhandene Passwort, Bot-Tokens, Host-Agenten und SQLite-Historie werden nicht zurückgesetzt. Bei einem Fehler werden vorherige Code-Dateien und das vorherige Web-Image wiederhergestellt. Anschließend den Browser mit Strg+F5 neu laden.
 
 Windows benötigt weiterhin einen passenden Host-Adapter für native Aktionen. Die portable Oberfläche bleibt ohne solchen Adapter auf Konfiguration beschränkt; ihre Host-Schaltflächen sind deaktiviert.
+
+## Speichern und Verfügbarkeit
+
+Beim Speichern werden die Chat-/Heartbeat-Container kurz angehalten und die Host-Agenten laden ihre Zugangsdaten neu. Die Weboberfläche bleibt dabei gestartet. Die Agenten sind dafür weiche `Wants`-Abhängigkeiten des Docker-Dienstes; ein `Requires` würde beim Anhalten eines Agenten den gesamten Stack einschließlich der Webseite stoppen. Für bereits betroffene Installationen korrigiert `sudo python3 tools/fix_save_lifecycle.py` die Dienstdatei und stellt die Erreichbarkeit wieder her. Der Helfer zeigt nur den gespeicherten Ergebnisstatus, keine Schlüssel, und prüft per Hash, dass Zugangsdaten und Passwort unverändert bleiben. Unterbrochene oder unklare Speicheraufträge werden nicht erneut ausgeführt.

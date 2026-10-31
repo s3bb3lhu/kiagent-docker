@@ -72,6 +72,8 @@ def main():
             if '.git' in relative.parts or '__pycache__' in relative.parts:continue
             if path.is_symlink():raise ValueError('Symlinks im Projekt nicht erlaubt.')
             if path.is_file():replace(PROJECT/relative,path.read_bytes())
+        replace('/etc/systemd/system/kiagent-docker.service',(SOURCE/'host/systemd/kiagent-docker.service').read_bytes())
+        run(['/usr/bin/systemctl','daemon-reload'])
         env.update(CONFIG_SETUP_ALLOWED_IP=admin_ip,CONFIG_SETUP_PROXY='1',CONFIG_SETUP_LOCAL_ONLY='0')
         replace(env_path,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
         replace(SITE,nginx_config(address,True,admin_ip).encode())

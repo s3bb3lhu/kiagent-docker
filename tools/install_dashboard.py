@@ -55,6 +55,8 @@ def main():
             if path.is_file():replace(PROJECT/relative,path.read_bytes())
         for name in ('config_broker.py','config_store.py','web_control.py','web_status.py'):
             replace(library/name,(SOURCE/'host'/name).read_bytes())
+        replace('/etc/systemd/system/kiagent-docker.service',(SOURCE/'host/systemd/kiagent-docker.service').read_bytes())
+        run(['/usr/bin/systemctl','daemon-reload'])
         run(['/usr/bin/systemctl','start','kiagent-config'])
         account=pwd.getpwnam('kiagent-config')
         code="import json,socket;s=socket.socket(socket.AF_UNIX);s.settimeout(12);s.connect('/run/kiagent-config/control.sock');s.sendall(b'{\"op\":\"web_status\"}'+bytes([10]));d=bytearray()\nwhile bytes([10]) not in d:\n b=s.recv(4096)\n if not b:raise ValueError()\n d.extend(b)\n if len(d)>32000:raise ValueError()\nr=json.loads(d);assert r.get('ok') and r['data']['available'] and r['data']['scope']=='host';print('Host telemetry: OK')"
@@ -79,6 +81,7 @@ def main():
         for path,previous in reversed(list(saved.items())):
             if previous is None:path.unlink(missing_ok=True)
             else:atomic(path,*previous)
+        subprocess.run(['/usr/bin/systemctl','daemon-reload'])
         subprocess.run(['/usr/bin/systemctl','start','kiagent-config'])
         if changed:subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'])
         raise

@@ -182,6 +182,9 @@ def main():
         run(['/usr/bin/docker','build','-t','kiagent-config:local',str(SOURCE)])
         for relative in ('src/app/config_web.py','src/app/templates/config_login.html','src/app/templates/config_index.html','tools/install_https.py'):
             replace(PROJECT/relative,(SOURCE/relative).read_bytes())
+        replace(PROJECT/'host/systemd/kiagent-docker.service',(SOURCE/'host/systemd/kiagent-docker.service').read_bytes())
+        replace('/etc/systemd/system/kiagent-docker.service',(SOURCE/'host/systemd/kiagent-docker.service').read_bytes())
+        run(['/usr/bin/systemctl','daemon-reload'])
         env_path=CONFIG/'deployment.env'
         env=dict(line.split('=',1) for line in env_path.read_text().splitlines() if line and not line.startswith('#'))
         env['CONFIG_ORIGIN']='https://'+address
