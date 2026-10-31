@@ -61,12 +61,12 @@ def exchange(payload):
         sock.connect('/run/kiagent-config/control.sock')
         sock.sendall(json.dumps(payload).encode()+b'\n')
         raw = bytearray()
-        while b'\n' not in raw and len(raw)<32000:
+        while b'\n' not in raw and len(raw)<1048576:
             part = sock.recv(4096)
             if not part:
                 break
             raw.extend(part)
-        if not raw.endswith(b'\n') or len(raw)>=32000:
+        if not raw.endswith(b'\n') or len(raw)>=1048576:
             raise ValueError('Invalid response')
         return json.loads(raw)
 

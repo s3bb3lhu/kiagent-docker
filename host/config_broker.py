@@ -197,6 +197,7 @@ class Broker:
             return {'ok':True,**json.loads(path.read_text())}
         if set(request) != {'op','data'} or request['op'] != 'save':
             raise Invalid('schema')
+        if (self.state.parent/'maintenance').exists():raise Invalid('busy')
         if self.blocked:
             raise Invalid('interrupted')
         if not self.lock.acquire(blocking=False):

@@ -1,11 +1,13 @@
 import asyncio
 import json
+import io
 import re
 import socket
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from practice_action import authorized, identity
+from package_policy import valid_package
 
 
 def exchange(request):
@@ -14,12 +16,12 @@ def exchange(request):
         sock.connect('/run/kiagent-packages/control.sock')
         sock.sendall(json.dumps(request).encode() + b'\n')
         data = bytearray()
-        while b'\n' not in data and len(data) < 20000:
+        while b'\n' not in data and len(data) < 1048576:
             part = sock.recv(4096)
             if not part:
                 break
             data.extend(part)
-        if not data.endswith(b'\n') or len(data) >= 20000:
+        if not data.endswith(b'\n') or len(data) >= 1048576:
             raise ValueError('Invalid broker response')
         return json.loads(data)
 
@@ -35,13 +37,14 @@ def fields(update, message_id):
 def describe(reply):
     status = reply.get('result')
     package = reply.get('package')
-    package = package if package in {'htop', 'tree'} else 'Das Paket'
+    package = package if valid_package(package) else 'Das Paket'
     messages = {
         'success': package + ' wurde erfolgreich installiert und die Paketversion geprueft.\n' + reply.get('version', ''),
         'installed': package + ' ist bereits installiert. Keine Installation ausgefuehrt.',
         'already_installed': package + ' war vor Ausfuehrung bereits installiert. Keine Installation ausgefuehrt.',
         'cancelled': 'Abgebrochen. Keine Installation ausgefuehrt.',
         'expired': 'Freigabe abgelaufen. Keine Installation ausgefuehrt.',
+        'plan_failed': 'Paketplan konnte nicht erneut geprueft werden. Keine Installation ausgefuehrt.',
         'changed': 'Der Paketplan hat sich geaendert. Keine Installation ausgefuehrt. Bitte einen neuen Plan anfordern.',
         'locked': 'Ein Versuch ist noch offen oder unklar. Keine neue Installation gestartet; Pruefung per SSH erforderlich.',
         'failed_reviewed': 'Der vorherige Versuch ist vor der Paketinstallation gescheitert und wurde per SSH geprueft. Fuer einen neuen Versuch ist ein neuer Paketplan mit Bestaetigung erforderlich.',
@@ -56,10 +59,15 @@ def describe(reply):
 async def propose(update, context):
     if not authorized(update, context) or update.message is None:
         return
-    if len(context.args) != 1 or context.args[0] not in {'htop', 'tree'}:
-        await update.message.reply_text('Derzeit freigegeben: /ki_install htop oder /ki_install tree\nAndere Pakete werden erst nach Pruefung ergaenzt.')
+    if len(context.args) != 1 or not valid_package(context.args[0].lower()):
+        await update.message.reply_text('Verwendung: /ki_install PAKETNAME. Alle Pakete aus den eingerichteten APT-Quellen sind freigegeben; erst Plan und Bestaetigung, dann Installation.')
         return
-    package = context.args[0]
+    await propose_package(update,context,context.args[0].lower())
+
+
+async def propose_package(update,context,package):
+    if not authorized(update,context) or update.message is None or not valid_package(package):
+        return
     sent = await update.message.reply_text(f'Paketplan fuer {package} wird lesend geprueft. Noch keine Installation.')
     try:
         reply = await rpc({'op': 'new', 'package': package, **fields(update, sent.message_id)})
@@ -70,11 +78,12 @@ async def propose(update, context):
         if re.fullmatch('[0-9a-f]{32}', token) is None:
             raise ValueError('Invalid token')
         changes = '\n'.join(reply['changes'])
-        if len(changes) > 2500:
-            raise ValueError('Plan too large')
+        if len(changes)>2500:
+            await update.message.reply_document(document=io.BytesIO(changes.encode()),filename='apt-plan.txt',caption='Vollstaendiger APT-Paketplan zur Bestaetigung.')
+            changes=f"{len(reply['changes'])} Planschritte. Vollstaendigen Plan in apt-plan.txt pruefen."
         await sent.edit_text(
             package.upper() + ' INSTALLIEREN\n\n' + changes + '\n\n'
-            'Neue Pakete aus den eingerichteten Ubuntu-Paketquellen. '
+            'Pakete aus den eingerichteten APT-Paketquellen. Abhaengigkeiten koennen aktualisiert und Dienste neu gestartet werden. '
             'Der Plan wird vor Ausfuehrung erneut verglichen. '
             'Einmalige Freigabe, zwei Minuten gueltig.',
             reply_markup=InlineKeyboardMarkup([[
@@ -82,7 +91,7 @@ async def propose(update, context):
                 InlineKeyboardButton('Abbrechen', callback_data=f'pkg:{token}:cancel'),
             ]]))
     except Exception:
-        await sent.edit_text('Paketplan nicht bereitgestellt. Keine Installation angefordert.')
+        await sent.edit_text('Paketplan nicht bereitgestellt: Paketname, Paketquellen oder Abhaengigkeiten pruefen. Keine Installation ausgefuehrt.')
 
 
 async def decide(update, context):
@@ -105,6 +114,10 @@ async def decide(update, context):
         reply = await rpc(request)
         if reply.get('result') == 'consumed':
             reply = await rpc({**request, 'op': 'result'})
+        for _ in range(900):
+            if reply.get('result') not in {'started','checking'}:break
+            await asyncio.sleep(2)
+            reply=await rpc({**request,'op':'result'})
         await query.edit_message_text(describe(reply), reply_markup=None)
     except Exception:
         await query.message.reply_text('Ergebnis nicht sicher zugestellt. Keine Wiederholung ausloesen. Bitte /ki_install_status abfragen.')

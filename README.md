@@ -6,7 +6,7 @@ Private, selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und pe
 
 - Telegram: Status, RAM, Speicherplatz, Laufzeit, KI-Diagnose und freie KI-Fragen.
 - Discord: Status, freie KI-Fragen und dieselbe begrenzte Paketverwaltung.
-- Paketinstallation für **htop und tree**: Vorschau, zweiminütige einmalige Bestätigung, erneuter Planvergleich, Audit und Ergebniskontrolle. Andere Pakete werden abgewiesen.
+- Paketinstallation für **alle Pakete aus den eingerichteten APT-Quellen**: Vorschau, zweiminütige einmalige Bestätigung, erneuter Planvergleich, Audit und Versionsprüfung. Die Installation läuft im Hintergrund; Status bleibt abfragbar. Entfernen und Herabstufen sind nicht freigegeben.
 - RAID-Monitor-Reparatur: nur `mdmonitor.service` und `mdmonitor-oneshot.service`, keine Veränderungen an RAID-Mitgliedern.
 - Automatik: 60 Sekunden Prüfintervall, mindestens 120 Sekunden Störung, eine Stunde Abstand, höchstens drei Versuche je 24 Stunden und gemeinsamer 120-Sekunden-Cooldown. Telegram-Vorankündigung vor automatischen Reparaturen; dauerhafte Ergebniszustellung und Sperre bei unklarem Ergebnis.
 - Automatikstatus und persistentes Ein-/Ausschalten über Telegram und Discord; Discord-Umschaltungen haben eine eigene Bestätigung.
@@ -144,3 +144,7 @@ Siehe [DISTRIBUTION.md](DISTRIBUTION.md) für die portable Weboberfläche unter 
 ## Status, Steuerung und Darstellung
 
 Das neue Dashboard enthält Host-Status mit Drei-Sekunden-Aktualisierung, bestätigte Steueraktionen, Server-Neustart, Tag-/Nachtmodus und die Sprachen Deutsch, Englisch, Spanisch und Französisch. Siehe [DASHBOARD.md](DASHBOARD.md) für Ausführungsgrenzen und den gesicherten Update-Installer.
+
+## KI und allgemeine Paketinstallation
+
+`/ki Installiere nginx` bereitet über eine strukturierte KI-Entscheidung einen echten APT-Plan vor. Nach Bestätigung wird auf dem Host installiert. `/ki_install PAKETNAME` funktioniert ohne KI; die Webseite bietet ein freies Paketfeld. Siehe [PACKAGES.md](PACKAGES.md) für Aktivierung, Grenzen und Statusabfragen.

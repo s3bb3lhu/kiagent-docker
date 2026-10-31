@@ -10,6 +10,7 @@ import threading
 import time
 from pathlib import Path
 from web_status import Telemetry
+from package_policy import valid_package
 
 EXEC='/run/kiagent-executor/control.sock'
 PKG='/run/kiagent-packages/control.sock'
@@ -18,7 +19,7 @@ ACTIONS=frozenset({'raid_monitor_start','automatik_an','automatik_aus','uebung_n
 def peer_rpc(path,packet):
     account=pwd.getpwnam('kiagent')
     timeout=150 if packet.get('op')=='confirm' else 25 if packet.get('op')=='new' else 5
-    code="import json,socket,sys;s=socket.socket(socket.AF_UNIX);s.settimeout("+str(timeout)+");s.connect("+repr(path)+");s.sendall(sys.stdin.buffer.read()+bytes([10]));d=bytearray()\nwhile bytes([10]) not in d:\n b=s.recv(4096)\n if not b:raise ValueError()\n d.extend(b)\n if len(d)>24000:raise ValueError()\nprint(d.decode(),end='')"
+    code="import json,socket,sys;s=socket.socket(socket.AF_UNIX);s.settimeout("+str(timeout)+");s.connect("+repr(path)+");s.sendall(sys.stdin.buffer.read()+bytes([10]));d=bytearray()\nwhile bytes([10]) not in d:\n b=s.recv(4096)\n if not b:raise ValueError()\n d.extend(b)\n if len(d)>1048576:raise ValueError()\nprint(d.decode(),end='')"
     result=subprocess.run(['/usr/bin/setpriv','--reuid='+str(account.pw_uid),'--regid='+str(grp.getgrnam('kiagent').gr_gid),'--clear-groups','--','/usr/bin/python3','-I','-c',code],input=json.dumps(packet),text=True,capture_output=True,timeout=timeout+3,check=True)
     return json.loads(result.stdout)
 
@@ -28,6 +29,7 @@ class WebControl:
         self.state.mkdir(mode=0o700,parents=True,exist_ok=True)
         self.telemetry=Telemetry()
         self.guard=guard
+        self.poll_seconds=2
         self.blocked=False
         for path in self.state.glob('*.json'):
             row=json.loads(path.read_text())
@@ -49,7 +51,9 @@ class WebControl:
         return {'user_id':uid,'chat_id':uid}
 
     def prepare(self,action,actor):
-        if not isinstance(action,str) or action not in ACTIONS or self.blocked:return {'ok':False,'code':'action_locked' if self.blocked else 'unsupported'}
+        if (self.state.parent/'maintenance').exists():return {'ok':False,'code':'busy'}
+        allowed=isinstance(action,str) and (action in ACTIONS or (action.startswith('install_') and valid_package(action.removeprefix('install_'))))
+        if not allowed or self.blocked:return {'ok':False,'code':'action_locked' if self.blocked else 'unsupported'}
         if not self.lock.acquire(blocking=False):return {'ok':False,'code':'busy'}
         try:
             # No new operation while another web grant remains live.
@@ -70,7 +74,7 @@ class WebControl:
                 if not response.get('ok') or not re.fullmatch('[a-f0-9]{32}',response.get('token','')):return {'ok':False,'code':response.get('result','unavailable')}
                 changes=[]
                 for line in response.get('changes',[]):
-                    match=re.match(r'^Inst (\S+) \(([^\s()]+)',line)
+                    match=re.match(r'^Inst (\S+) (?:\[[^\]]+\] )?\(([^\s()]+)',line)
                     if match:changes.append(match[1]+'='+match[2])
                 row.update(upstream=response['token'],message=packet['message_id'],plan={'versions':changes})
             elif action in {'raid_monitor_start','uebung_neustart'}:
@@ -117,6 +121,7 @@ class WebControl:
             row['state']='cancelled';self.write(row)
             if row.get('upstream'):self.rpc(PKG if row['action'].startswith('install_') else EXEC,{'op':'cancel',**row['identity'],'message_id':row['message'],'token':row['upstream']})
             return {'ok':True,'state':'cancelled'}
+        if (self.state.parent/'maintenance').exists():return {'ok':False,'code':'busy'}
         if not self.lock.acquire(blocking=False):return {'ok':False,'code':'busy'}
         try:
             # Consume durably before any process/RPC; failure here executes nothing.
@@ -130,7 +135,15 @@ class WebControl:
                         result={'ok':True,'result':'scheduled'}
                     elif action=='testaktion':result={'ok':True,'result':'success'}
                     elif action in {'automatik_an','automatik_aus'}:result=self.rpc(EXEC,{'op':'auto_control',**row['identity'],'enabled':action=='automatik_an'})
-                    else:result=self.rpc(PKG if action.startswith('install_') else EXEC,{'op':'confirm',**row['identity'],'token':row['upstream'],'message_id':row['message']})
+                    else:
+                        packet={'op':'confirm',**row['identity'],'token':row['upstream'],'message_id':row['message']}
+                        result=self.rpc(PKG if action.startswith('install_') else EXEC,packet)
+                        if action.startswith('install_'):
+                            deadline=time.monotonic()+1800
+                            while result.get('result') in {'started','checking'} and time.monotonic()<deadline:
+                                time.sleep(self.poll_seconds)
+                                result=self.rpc(PKG,{**packet,'op':'result'})
+                            if result.get('result') in {'started','checking'}:result={'ok':False,'result':'uncertain'}
                     code=result.get('result','success' if result.get('ok') else 'uncertain')
                     row['result']={k:result[k] for k in ('result','retry_after','version','package','enabled') if k in result}
                     if 'version' in row['result']:row['result']['version']=row['result']['version'].removeprefix('install ok installed ')

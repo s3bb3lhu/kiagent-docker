@@ -3,8 +3,11 @@ import sqlite3
 import unittest
 import sys
 import types
+import threading
+import time
 from unittest.mock import patch
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src/app'))
 
 if sys.platform == 'win32':
     sys.modules['pwd'] = types.SimpleNamespace()
@@ -17,7 +20,7 @@ class Tests(unittest.TestCase):
         self.db = sqlite3.connect(':memory:', isolation_level=None)
         self.calls = []
         self.proposal = {'installed': False, 'digest': 'abc', 'changes': ['Inst htop (1 Ubuntu [amd64])'], 'versions': ['htop=1']}
-        self.b = p.Broker(self.db, {42}, lambda package: {**self.proposal, 'package': package},
+        self.b = p.Broker(self.db, {42}, lambda package: {**self.proposal, 'package': package,'versions':[package+'=1']},
                           lambda plan: self.calls.append(plan) or 'install ok installed 1')
     def request(self, op, **extra):
         return dict(op=op, user_id=42, chat_id=42, message_id=10, **extra)
@@ -54,7 +57,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.b.handle(self.request('confirm', token=token))['result'], 'changed')
         self.assertFalse(self.calls)
     def test_unknown_package_and_extra_fields(self):
-        for req in [self.request('new', package='curl'), self.request('new', package='htop; id'), self.request('new', package='htop', command='id')]:
+        for req in [self.request('new', package='--allow-unauthenticated'), self.request('new', package='htop; id'), self.request('new', package='htop', command='id')]:
             with self.assertRaises(ValueError):
                 self.b.handle(req)
         self.assertFalse(self.calls)
@@ -108,15 +111,70 @@ class Tests(unittest.TestCase):
     def test_real_parser_and_unsafe_changes(self):
         safe = 'Inst tree (2.3.1-1 Ubuntu:26.04/resolute [amd64])\nConf tree (2.3.1-1 Ubuntu:26.04/resolute [amd64])\n'
         for text, allowed in [(safe, True), (safe + 'Remv ssh [1]\n', False),
-                              (safe + 'Inst libc6 [1] (2 Ubuntu [amd64])\n', False)]:
+                              (safe + 'Inst libc6 [1] (2 Ubuntu [amd64])\n', True)]:
             with patch.object(p, 'installed', return_value=None), patch.object(p.subprocess, 'run', return_value=types.SimpleNamespace(returncode=0, stdout=text)):
                 if allowed:
                     result = p.plan('tree')
-                    self.assertEqual(result['versions'], ['tree=2.3.1-1'])
+                    self.assertIn('tree=2.3.1-1',result['versions'])
                     self.assertEqual(result['package'], 'tree')
                 else:
                     with self.assertRaises(ValueError):
                         p.plan('tree')
+
+    def test_all_repository_package_names_are_eligible(self):
+        for name in ('curl','nginx','git','python3-venv','libstdc++6','libc6:amd64','fonts-noto-cjk'):
+            self.assertTrue(p.valid_package(name))
+            reply=self.b.handle(self.request('new',package=name))
+            self.assertEqual(reply['result'],'pending')
+        for name in ('curl -y','/tmp/x.deb','https://example.com/x','$(id)','curl\nssh','a','Curl'):
+            self.assertFalse(p.valid_package(name))
+
+    def test_large_dependency_plan_and_native_architecture(self):
+        text='\n'.join('Inst package'+str(i)+' (1 Ubuntu [amd64])' for i in range(25))+'\nInst curl (8.0 Ubuntu [amd64])\n'
+        with patch.object(p,'installed',return_value=None),patch.object(p.subprocess,'run',return_value=types.SimpleNamespace(returncode=0,stdout=text)):
+            proposal=p.plan('curl:amd64')
+        self.assertEqual(len(proposal['versions']),26)
+        self.assertEqual(p.version_for('curl:amd64',proposal['versions']),'8.0')
+
+    def test_async_installation_stays_running_until_verified(self):
+        db=sqlite3.connect(':memory:',isolation_level=None,check_same_thread=False)
+        entered=threading.Event();release=threading.Event();calls=[]
+        def runner(proposal):
+            calls.append(proposal);entered.set();release.wait(3);return 'install ok installed 1'
+        broker=p.Broker(db,{42},lambda name:{**self.proposal,'package':name,'versions':[name+'=1']},runner,async_run=True)
+        first=broker.handle(self.request('new',package='curl'))['token']
+        second=broker.handle(self.request('new',package='nginx'))['token']
+        self.assertEqual(broker.handle(self.request('confirm',token=first))['result'],'started')
+        self.assertTrue(entered.wait(1))
+        self.assertEqual(broker.handle(self.request('status'))['result'],'started')
+        self.assertEqual(broker.handle(self.request('confirm',token=second))['result'],'locked')
+        self.assertEqual(broker.handle(self.request('confirm',token=first))['result'],'consumed')
+        release.set()
+        for _ in range(100):
+            reply=broker.handle(self.request('result',token=first))
+            if reply['result']=='success':break
+            time.sleep(.01)
+        self.assertEqual(reply['result'],'success');self.assertEqual(len(calls),1)
+
+    def test_failed_recheck_consumes_grant_without_installation(self):
+        token=self.new()
+        self.b.planner=lambda package:(_ for _ in ()).throw(ValueError('fixture'))
+        self.assertEqual(self.b.handle(self.request('confirm',token=token))['result'],'plan_failed')
+        self.assertEqual(self.b.handle(self.request('confirm',token=token))['result'],'consumed')
+        self.assertFalse(self.calls)
+
+    def test_invalid_pins_or_missing_requested_package_never_run_apt(self):
+        for versions in (['--allow-unauthenticated'],['tree=1'],['curl=--option'],[]):
+            with patch.object(p.subprocess,'run') as command:
+                with self.assertRaises(ValueError):self.b.install({'package':'curl','versions':versions})
+                command.assert_not_called()
+
+    def test_upgrade_maintenance_blocks_installations_not_status(self):
+        token=self.new();self.b.maintenance=lambda:True
+        self.assertEqual(self.b.handle(self.request('new',package='curl'))['result'],'locked')
+        self.assertEqual(self.b.handle(self.request('confirm',token=token))['result'],'locked')
+        self.assertEqual(self.b.handle(self.request('status'))['result'],'pending')
+        self.assertFalse(self.calls)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

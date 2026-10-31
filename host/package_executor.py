@@ -1,4 +1,4 @@
-"""Allowlisted package installation, peer-authenticated and confirmed."""
+"""Repository package installation, peer-authenticated and confirmed."""
 import hashlib
 import json
 import os
@@ -10,20 +10,23 @@ import sqlite3
 import struct
 import subprocess
 import time
+import sys
+import threading
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from package_policy import valid_package,version_for
 
 SOCKET = '/run/kiagent-packages/control.sock'
-PACKAGES = frozenset({'htop', 'tree'})
 ENV = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LC_ALL': 'C',
        'DEBIAN_FRONTEND': 'noninteractive', 'APT_LISTCHANGES_FRONTEND': 'none'}
 BASE = ['/usr/bin/apt-get', '-o', 'APT::Get::Assume-Yes=true',
         '-o', 'Acquire::Retries=0', '-o', 'DPkg::Lock::Timeout=5',
-        '--no-install-recommends', '--no-upgrade', '--no-remove']
+        '-o', 'Dpkg::Options::=--force-confold', '--no-install-recommends', '--no-remove']
 
 
 def installed(package):
-    if package not in PACKAGES:
-        raise ValueError('Package not allowlisted')
+    if not valid_package(package):
+        raise ValueError('Invalid package name')
     p = subprocess.run(['/usr/bin/dpkg-query', '-W',
                         '-f=${Status} ${Version}', package],
                        capture_output=True, text=True, timeout=5, env=ENV)
@@ -31,59 +34,75 @@ def installed(package):
 
 
 def plan(package):
-    if package not in PACKAGES:
-        raise ValueError('Package not allowlisted')
+    if not valid_package(package):
+        raise ValueError('Invalid package name')
     if installed(package):
         return {'installed': True, 'package': package}
     p = subprocess.run(BASE + ['--simulate', 'install', package],
                        capture_output=True, text=True, timeout=20, env=ENV)
     text = p.stdout
-    if p.returncode or len(text) > 16000:
+    if p.returncode or len(text) > 524288:
         raise ValueError('Package simulation failed')
     changes = [line for line in text.splitlines() if line.startswith(('Inst ', 'Remv ', 'Conf '))]
     installs = [line for line in changes if line.startswith('Inst ')]
-    if (not installs or len(installs) > 10 or
-            any(line.startswith('Remv ') for line in changes) or
-            any(re.match(r'^Inst \S+ \[', line) for line in installs)):
+    if (not installs or len(installs) > 4096 or any(line.startswith('Remv ') for line in changes) or 'will be DOWNGRADED' in text):
         raise ValueError('Unsafe package changes')
     versions = []
     for line in installs:
-        m = re.match(r'^Inst ([a-z0-9][a-z0-9+.-]*(?::[a-z0-9]+)?) \(([^\s()]+) ', line)
-        if m is None:
+        m = re.match(r'^Inst ([a-z0-9][a-z0-9+.-]*(?::[a-z0-9-]+)?) (?:\[[^\]]+\] )?\(([^\s()]+) ', line)
+        if m is None or not valid_package(m[1]):
             raise ValueError('Unknown package plan')
         versions.append(m[1] + '=' + m[2])
-    if not any(v.startswith(package + '=') for v in versions):
-        raise ValueError('Missing requested package')
+    version_for(package,versions)
     digest = hashlib.sha256('\n'.join(changes).encode()).hexdigest()
     return {'installed': False, 'digest': digest, 'package': package,
             'changes': changes, 'versions': versions}
 
 
 class Broker:
-    def __init__(self, db, allowed, planner=plan, runner=None, discord_access=None):
+    def __init__(self, db, allowed, planner=plan, runner=None, discord_access=None,async_run=False,maintenance=None):
         self.db, self.allowed, self.planner = db, allowed, planner
         self.discord_access = discord_access
         self.runner = runner or self.install
+        self.lock=threading.RLock()
+        self.async_run=async_run
+        self.failed=False
+        self.maintenance=maintenance or (lambda:False)
         db.execute('CREATE TABLE IF NOT EXISTS package_jobs (token TEXT PRIMARY KEY, uid INTEGER, message INTEGER, expires REAL, state TEXT, plan TEXT, result TEXT)')
         # A prior process may have stopped after spawning apt. Never replay it.
         db.execute("UPDATE package_jobs SET state='uncertain' WHERE state='started'")
+        db.execute("UPDATE package_jobs SET state='plan_failed' WHERE state='checking'")
 
     def install(self, proposal):
         package = proposal.get('package', 'htop')
-        if package not in PACKAGES:
-            raise ValueError('Package not allowlisted')
+        if not valid_package(package):
+            raise ValueError('Invalid package name')
+        if not isinstance(proposal.get('versions'),list) or not 1<=len(proposal['versions'])<=4096:
+            raise ValueError('Invalid package plan')
+        for item in proposal['versions']:
+            if not isinstance(item,str):raise ValueError('Invalid version entry')
+            name,separator,version=item.partition('=')
+            if not separator or not valid_package(name) or re.fullmatch(r'[0-9][A-Za-z0-9.+:~\-]*',version) is None:
+                raise ValueError('Invalid pinned package version')
+        expected = version_for(package,proposal['versions'])
         # Include every simulated package version. No model-generated arguments.
         with open('/var/lib/kiagent-packages/apt-last.log', 'w') as log:
             subprocess.run(BASE + ['install', *proposal['versions']],
                            check=True, stdin=subprocess.DEVNULL,
                            stdout=log, stderr=subprocess.STDOUT, env=ENV)
         version = installed(package)
-        expected = next(v.split('=', 1)[1] for v in proposal['versions'] if v.startswith(package + '='))
         if version != 'install ok installed ' + expected:
             raise ValueError('Installation not verified')
+        for pinned in proposal['versions']:
+            name,expected_version=pinned.split('=',1)
+            if installed(name)!='install ok installed '+expected_version:
+                raise ValueError('Dependency version not verified')
         return version
 
-    def handle(self, req, platform='telegram'):
+    def handle(self,req,platform='telegram'):
+        with self.lock:return self._handle(req,platform)
+
+    def _handle(self, req, platform='telegram'):
         op = req.get('op')
         common = {'op', 'user_id', 'chat_id', 'message_id'}
         if platform == 'discord':
@@ -109,16 +128,17 @@ class Broker:
             # Separate namespace; Discord snowflakes fit SQLite signed integers.
             uid = -uid
         if op == 'status':
-            row = self.db.execute('SELECT state,result,plan FROM package_jobs WHERE uid=? ORDER BY rowid DESC LIMIT 1', (uid,)).fetchone()
-            return {'ok': True, 'result': 'none' if row is None else row[0],
+            row = self.db.execute("SELECT state,result,plan FROM package_jobs WHERE uid=? ORDER BY CASE WHEN state IN ('started','checking','uncertain') THEN 0 ELSE 1 END,rowid DESC LIMIT 1", (uid,)).fetchone()
+            return {'ok': True, 'result': 'none' if row is None else 'uncertain' if self.failed and row[0]=='started' else row[0],
                     'version': '' if row is None else row[1],
                     'package': '' if row is None else json.loads(row[2]).get('package', 'htop')}
         if op == 'new':
-            if type(req['package']) is not str or req['package'] not in PACKAGES:
-                raise ValueError('Package not allowlisted')
-            if self.db.execute("SELECT 1 FROM package_jobs WHERE state IN ('started','uncertain')").fetchone():
+            if not valid_package(req['package']):
+                raise ValueError('Invalid package name')
+            if self.maintenance() or self.failed or self.db.execute("SELECT 1 FROM package_jobs WHERE state IN ('started','checking','uncertain')").fetchone():
                 return {'ok': False, 'result': 'locked'}
-            proposal = self.planner(req['package'])
+            try:proposal = self.planner(req['package'])
+            except Exception:return {'ok':False,'result':'plan_failed','package':req['package']}
             if proposal.get('installed'):
                 return {'ok': True, 'result': 'installed', 'package': req['package']}
             token = secrets.token_hex(16)
@@ -135,10 +155,10 @@ class Broker:
             raise ValueError('Unknown confirmation')
         state, proposal = row[3], json.loads(row[4])
         package = proposal.get('package', 'htop')
-        if package not in PACKAGES:
-            raise ValueError('Package no longer allowlisted')
+        if not valid_package(package):
+            raise ValueError('Invalid stored package name')
         if op == 'result':
-            return {'ok': state == 'success', 'result': state, 'version': row[5], 'package': package}
+            return {'ok': state == 'success', 'result': 'uncertain' if self.failed and state=='started' else state, 'version': row[5], 'package': package}
         if state != 'pending':
             return {'ok': False, 'result': 'consumed'}
         if time.time() > row[2]:
@@ -147,9 +167,15 @@ class Broker:
         if op == 'cancel':
             self.db.execute("UPDATE package_jobs SET state='cancelled' WHERE token=?", (token,))
             return {'ok': True, 'result': 'cancelled'}
+        if self.maintenance() or self.failed or self.db.execute("SELECT 1 FROM package_jobs WHERE state IN ('started','checking','uncertain') AND token!=?",(token,)).fetchone():
+            return {'ok':False,'result':'locked'}
         # Persist consumption before any execution; audit failure fails closed.
         self.db.execute("UPDATE package_jobs SET state='checking' WHERE token=? AND state='pending'", (token,))
-        current = self.planner(package)
+        try:
+            current = self.planner(package)
+        except Exception:
+            self.db.execute("UPDATE package_jobs SET state='plan_failed' WHERE token=?",(token,))
+            return {'ok':False,'result':'plan_failed','package':package}
         if current.get('installed'):
             self.db.execute("UPDATE package_jobs SET state='already_installed' WHERE token=?", (token,))
             return {'ok': True, 'result': 'installed', 'package': package}
@@ -158,6 +184,24 @@ class Broker:
             return {'ok': False, 'result': 'changed'}
         self.db.execute("UPDATE package_jobs SET state='started' WHERE token=?", (token,))
         print(json.dumps({'event': 'started', 'package': package, 'platform': platform, 'user_id': abs(uid)}), flush=True)
+        if self.async_run:
+            def worker():
+                try:
+                    version=self.runner(proposal)
+                    with self.lock:self.db.execute("UPDATE package_jobs SET state='success',result=? WHERE token=?",(version,token))
+                    print(json.dumps({'event':'success','package':package}),flush=True)
+                except Exception:
+                    with self.lock:
+                        self.failed=True
+                        try:self.db.execute("UPDATE package_jobs SET state='uncertain' WHERE token=?",(token,))
+                        except Exception:pass
+                    print(json.dumps({'event':'uncertain','package':package}),flush=True)
+            try:threading.Thread(target=worker,daemon=False).start()
+            except Exception:
+                self.failed=True
+                self.db.execute("UPDATE package_jobs SET state='uncertain' WHERE token=?",(token,))
+                return {'ok':False,'result':'uncertain','package':package}
+            return {'ok':True,'result':'started','package':package}
         try:
             version = self.runner(proposal)
         except Exception:
@@ -173,7 +217,7 @@ def main():
     allowed = {int(s) for s in (Path(os.environ['CREDENTIALS_DIRECTORY']) / 'allowed-users').read_text().splitlines() if s.strip()}
     if not allowed or any(x <= 0 for x in allowed):
         raise ValueError('Invalid allowlist')
-    db = sqlite3.connect('/var/lib/kiagent-executor/history.sqlite3', isolation_level=None)
+    db = sqlite3.connect('/var/lib/kiagent-executor/history.sqlite3', isolation_level=None,check_same_thread=False)
     db.execute('PRAGMA synchronous=FULL')
     credentials = Path(os.environ['CREDENTIALS_DIRECTORY'])
     access = json.loads((credentials / 'discord-access').read_text())
@@ -181,7 +225,7 @@ def main():
             or any(type(x) is not int or not 0 < x < 2**63 for x in
                    [*access['users'], access['guild_id'], access['channel_id']])):
         raise ValueError('Invalid Discord access configuration')
-    broker = Broker(db, allowed, discord_access=access)
+    broker = Broker(db, allowed, discord_access=access,async_run=True,maintenance=lambda:Path('/var/lib/kiagent-config/maintenance').exists())
     Path(SOCKET).unlink(missing_ok=True)
     client_uid = pwd.getpwnam('kiagent').pw_uid
     discord_uid = pwd.getpwnam('kiagent-discord').pw_uid

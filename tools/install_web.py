@@ -143,6 +143,7 @@ def main():
         replace(env_file,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
         for name in ('config_store.py','config_broker.py','web_control.py','web_status.py'):
             replace('/usr/local/lib/kiagent-config/'+name,payload[Path('host')/name])
+        replace('/usr/local/lib/kiagent-config/package_policy.py',payload[Path('src/app/package_policy.py')])
         for name in ('kiagent-config.service','kiagent-docker.service'):
             replace('/etc/systemd/system/'+name,payload[Path('host/systemd')/name])
         replace('/usr/local/lib/kiagent-backup/backup.py',payload[Path('host/backup.py')])

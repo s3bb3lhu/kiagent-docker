@@ -129,6 +129,7 @@ def main():
             os.chmod(path,0o755 if path.is_dir() else 0o644)
         for source, target in [('executor.py','server.py'),('package_executor.py','package_server.py'),('host_metrics.py','host_metrics.py')]:
             replace('/opt/kiagent/executor/' + target, (SOURCE/'host'/source).read_bytes(), 0o600)
+        replace('/opt/kiagent/executor/package_policy.py',(SOURCE/'src/app/package_policy.py').read_bytes(),0o600)
         replace('/usr/local/lib/kiagent-heartbeat/kiagent_heartbeat.py',(SOURCE/'host/heartbeat.py').read_bytes())
         replace('/usr/local/lib/kiagent-backup/backup.py',(SOURCE/'host/backup.py').read_bytes())
         for path in (SOURCE/'host/systemd').iterdir():

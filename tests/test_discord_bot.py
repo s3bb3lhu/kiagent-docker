@@ -35,6 +35,8 @@ with tempfile.TemporaryDirectory() as temporary:
     assert module.client.tree.get_commands() == []
     for command in commands:
         command.to_dict(module.client.tree)
+    install_schema=next(command for command in commands if command.name=='ki_install').to_dict(module.client.tree)
+    assert not install_schema['options'][0].get('choices'), 'Package names must not be limited by Discord choices'
     assert module.client.intents.message_content is False
     assert module.client.intents.members is False
     assert module.client.intents.presences is False

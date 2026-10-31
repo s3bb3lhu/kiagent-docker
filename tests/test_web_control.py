@@ -9,6 +9,7 @@ from unittest.mock import Mock,patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'host'))
+sys.path.insert(0,str(ROOT/'src/app'))
 from web_control import WebControl
 
 class ControlTests(unittest.TestCase):
@@ -31,7 +32,7 @@ class ControlTests(unittest.TestCase):
         self.fail('Worker did not finish')
 
     def test_no_shell_or_unapproved_action(self):
-        for value in ('reboot; id','install_curl',{},None):self.assertFalse(self.prepare(value)['ok'])
+        for value in ('reboot; id','install_--allow-unauthenticated',{},None):self.assertFalse(self.prepare(value)['ok'])
         self.rpc.assert_not_called()
 
     def test_actor_binding_cancel_expiry_and_no_replay(self):
@@ -86,5 +87,23 @@ class ControlTests(unittest.TestCase):
         with patch.object(self.control,'write',side_effect=failing):
             self.decide(job);self.assertEqual(self.wait(job)['state'],'uncertain')
         self.assertFalse(self.prepare('server_restart')['ok'])
+
+    def test_arbitrary_package_waits_for_finished_agent_result(self):
+        entered=threading.Event();release=threading.Event()
+        self.control.poll_seconds=.001
+        def rpc(path,packet):
+            if packet['op']=='new':return {'ok':True,'result':'pending','token':'e'*32,'changes':['Inst curl (1 Ubuntu [amd64])']}
+            if packet['op']=='confirm':return {'ok':True,'result':'started'}
+            entered.set();release.wait(2);return {'ok':True,'result':'success','version':'install ok installed 1','package':'curl'}
+        self.control.rpc=rpc
+        plan=self.prepare('install_curl');self.assertEqual(plan['versions'],['curl=1'])
+        self.decide(plan['id']);self.assertTrue(entered.wait(1))
+        self.assertEqual(self.control.handle({'op':'web_job','actor':self.actor,'id':plan['id']})['state'],'running')
+        release.set();result=self.wait(plan['id']);self.assertEqual(result['state'],'success');self.assertEqual(result['result']['version'],'1')
+
+    def test_maintenance_blocks_new_actions(self):
+        (self.root/'maintenance').touch()
+        self.assertEqual(self.prepare('server_restart')['code'],'busy')
+        self.rpc.assert_not_called()
 
 if __name__=='__main__':unittest.main()
