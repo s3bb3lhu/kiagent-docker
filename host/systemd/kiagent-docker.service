@@ -1,0 +1,15 @@
+[Unit]
+Description=Kiagent Telegram and Discord containers
+Requires=docker.service kiagent-executor.service kiagent-packages.service
+After=docker.service kiagent-executor.service kiagent-packages.service network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/kiagent-docker/project
+ExecStart=/usr/bin/docker compose --env-file /etc/kiagent-docker/deployment.env up -d --wait --wait-timeout 180
+ExecStop=/usr/bin/docker compose --env-file /etc/kiagent-docker/deployment.env stop
+TimeoutStartSec=240
+TimeoutStopSec=90
+[Install]
+WantedBy=multi-user.target

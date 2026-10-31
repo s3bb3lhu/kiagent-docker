@@ -1,0 +1,37 @@
+[Unit]
+Description=Kiagent confirmed allowlisted host package installer
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=root
+Group=kiagent
+ExecStart=/usr/bin/python3 -I -B /opt/kiagent/executor/package_server.py
+LoadCredential=allowed-users:/etc/kiagent-docker/secrets/allowed-users
+LoadCredential=discord-access:/etc/kiagent-docker/secrets/discord-access.json
+RuntimeDirectory=kiagent-packages
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+StateDirectory=kiagent-packages
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=300
+NoNewPrivileges=yes
+AmbientCapabilities=CAP_SETUID
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+MemoryMax=512M
+TasksMax=64
+[Install]
+WantedBy=multi-user.target

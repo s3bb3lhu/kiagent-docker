@@ -1,0 +1,18 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Scan source for credentials
+        run: python3 tools/scan_secrets.py
+      - name: Prepare test identity on disposable runner
+        run: sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin kiagent
+      - name: Build and test without credentials or live bots
+        run: sudo python3 tools/test_docker.py

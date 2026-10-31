@@ -1,0 +1,93 @@
+name: kiagent
+x-common: &common
+  image: kiagent:local
+  build: .
+  platform: linux/amd64
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 64
+  init: true
+  environment: &environment
+    CREDENTIALS_DIRECTORY: /run/secrets
+    PYTHONUNBUFFERED: '1'
+    PYTHONDONTWRITEBYTECODE: '1'
+    DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?Run tools/configure.py first}
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+  logging:
+    driver: json-file
+    options: {max-size: 5m, max-file: '3'}
+
+services:
+  telegram:
+    <<: *common
+    user: ${KIAGENT_UID:?}:${KIAGENT_GID:?}
+    command: [python, -B, /app/bot.py]
+    mem_limit: 384m
+    volumes:
+      - type: bind
+        source: /run/kiagent-executor
+        target: /run/kiagent-executor
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: /run/kiagent-packages
+        target: /run/kiagent-packages
+        read_only: true
+        bind: {create_host_path: false}
+    secrets: [telegram-token, allowed-users, openai-api-key, hc-bot]
+    healthcheck:
+      test: [CMD, python, -B, /app/healthcheck.py, telegram]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+  discord:
+    <<: *common
+    user: ${DISCORD_UID:?}:${KIAGENT_GID:?}
+    command: [python, -B, /app/discord_bot.py]
+    mem_limit: 384m
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+      - /run/kiagent-discord:rw,noexec,nosuid,size=1m,uid=${DISCORD_UID},gid=${KIAGENT_GID},mode=0700
+    volumes:
+      - type: bind
+        source: /run/kiagent-executor
+        target: /run/kiagent-executor
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: /run/kiagent-packages
+        target: /run/kiagent-packages
+        read_only: true
+        bind: {create_host_path: false}
+    secrets: [discord-token, discord-access, openai-api-key]
+    healthcheck:
+      test: [CMD, python, -B, /app/healthcheck.py, discord]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+  server-heartbeat:
+    <<: *common
+    user: ${KIAGENT_UID:?}:${KIAGENT_GID:?}
+    command: [python, -B, /app/server_heartbeat.py]
+    mem_limit: 64m
+    secrets: [hc-server]
+    healthcheck:
+      test: [CMD, python, -B, /app/healthcheck.py, heartbeat]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 75s
+
+secrets:
+  telegram-token: {file: '${KIAGENT_SECRETS_DIR:?}/telegram-token'}
+  allowed-users: {file: '${KIAGENT_SECRETS_DIR:?}/allowed-users'}
+  discord-token: {file: '${KIAGENT_SECRETS_DIR:?}/discord-token'}
+  discord-access: {file: '${KIAGENT_SECRETS_DIR:?}/discord-access.json'}
+  openai-api-key: {file: '${KIAGENT_SECRETS_DIR:?}/openai-api-key'}
+  hc-bot: {file: '${KIAGENT_SECRETS_DIR:?}/hc-bot'}
+  hc-server: {file: '${KIAGENT_SECRETS_DIR:?}/hc-server'}

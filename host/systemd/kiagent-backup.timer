@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Kiagent backup
+[Timer]
+OnCalendar=*-*-* 03:15:00 Europe/Berlin
+Persistent=true
+AccuracySec=1min
+[Install]
+WantedBy=timers.target

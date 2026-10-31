@@ -1,0 +1,13 @@
+[Unit]
+Description=Harmless Kiagent practice service
+[Service]
+User=kiagent
+Group=kiagent
+ExecStart=/usr/bin/sleep infinity
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+[Install]
+WantedBy=multi-user.target

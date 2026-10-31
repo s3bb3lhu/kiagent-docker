@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!requirements.lock
+!src/
+!src/app/
+!src/app/*.py

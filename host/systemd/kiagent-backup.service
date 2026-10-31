@@ -1,0 +1,18 @@
+[Unit]
+Description=Kiagent local backup with isolated restore verification
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I -B /usr/local/lib/kiagent-backup/backup.py --run
+UMask=0077
+StateDirectory=kiagent-backup
+StateDirectoryMode=0755
+ReadWritePaths=/var/backups/kiagent-daily /var/lib/kiagent-backup
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+MemoryMax=256M
+TimeoutStartSec=180
