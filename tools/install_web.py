@@ -50,6 +50,9 @@ def main():
     if sys.argv[1:] not in ([],['--before-activation']):
         raise SystemExit('Unerwartete Argumente.')
     before_activation = sys.argv[1:] == ['--before-activation']
+    if not before_activation:
+        # Recover the existing stack first after a prior installer rollback.
+        run(['/usr/bin/systemctl','start','kiagent-docker.service'])
     for parent in (PROJECT,CONFIG,CONFIG/'secrets'):
         info = parent.lstat()
         if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
@@ -154,10 +157,20 @@ def main():
             time.sleep(.5)
         run(COMPOSE+['config','--quiet'])
         run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--wait','--wait-timeout','90','config-web'])
+        binding = subprocess.check_output(COMPOSE+['port','config-web','8080'],text=True).strip()
+        if binding != '127.0.0.1:8787':
+            raise ValueError('Web-Port nicht ausschliesslich an Loopback gebunden.')
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
-        with opener.open(ORIGIN+'/health',timeout=10) as response:
-            if response.status != 200:
-                raise ValueError('Web-Dienst nicht bereit.')
+        for attempt in range(10):
+            try:
+                with opener.open(ORIGIN+'/health',timeout=3) as response:
+                    if response.status != 200:
+                        raise ValueError('Web-Dienst nicht bereit.')
+                break
+            except OSError:
+                if attempt == 9:
+                    raise
+                time.sleep(1)
         if password is not None:
             with opener.open(ORIGIN+'/login',timeout=10) as response:
                 html = response.read().decode()
@@ -172,6 +185,7 @@ def main():
                     raise ValueError('Konfigurationsstatus nicht erreichbar.')
         units = ['kiagent-executor.service','kiagent-packages.service']
         if not before_activation:
+            run(['/usr/bin/systemctl','start','kiagent-docker.service'])
             units.append('kiagent-docker.service')
         run(['/usr/bin/systemctl','is-active','--quiet',*units])
         run(['/usr/bin/systemctl','start','kiagent-backup.service'])
@@ -188,6 +202,8 @@ def main():
         if was_running:
             subprocess.run(['/usr/bin/systemctl','start','kiagent-config.service'])
             subprocess.run(COMPOSE+['up','-d','--no-build','--no-deps','config-web'])
+        if not before_activation:
+            subprocess.run(['/usr/bin/systemctl','start','kiagent-docker.service'],timeout=240)
         raise
     report = {'result':'success','checked_utc':datetime.now(timezone.utc).isoformat(),
               'origin':ORIGIN,'login_verified':password is not None,'bot_tokens_changed':False,

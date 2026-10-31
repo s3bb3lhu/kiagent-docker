@@ -91,7 +91,7 @@ services:
       <<: *environment
       CONFIG_ORIGIN: ${CONFIG_ORIGIN:-http://127.0.0.1:8787}
     mem_limit: 192m
-    networks: [configuration]
+    networks: [configuration-loopback]
     ports: ['127.0.0.1:8787:8080']
     volumes:
       - type: bind
@@ -119,5 +119,7 @@ secrets:
   web-session-key: {file: '${KIAGENT_SECRETS_DIR:?}/web-session-key'}
 
 networks:
-  configuration:
-    internal: true
+  configuration-loopback:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: '127.0.0.1'
