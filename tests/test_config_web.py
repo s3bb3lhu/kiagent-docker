@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src/app'))
 from config_web import create_app,password_hash
 from web_auth import AuthStore,valid_password
+from web_i18n import LANGUAGES,ROWS
 
 ORIGIN = 'http://127.0.0.1:8787'
 
@@ -137,6 +138,24 @@ class WebTests(unittest.TestCase):
         (root/'auth.json').unlink()
         with self.assertRaises(ValueError):
             AuthStore(root,('01'*16,password_hash(self.password,'01'*16)))
+
+    def test_localized_pages_and_persisted_language(self):
+        self.login()
+        for lang in LANGUAGES:
+            for path in ('/','/status','/control','/password'):
+                response=self.get(path+'?lang='+lang)
+                self.assertEqual(response.status_code,200)
+                self.assertIn('lang="'+lang+'"',response.text)
+                self.assertEqual(response.headers['Content-Language'],lang)
+        for row in ROWS.values():self.assertEqual(len(row),4);self.assertTrue(all(row))
+        self.assertEqual(self.get('/status').headers['Content-Language'],'fr')
+
+    def test_control_requires_login_csrf_and_confirmation_phrase(self):
+        self.assertEqual(self.get('/api/server/status').status_code,401)
+        self.login();page=self.get('/control');token=re.search(r'name="csrf-token" content="([^"]+)"',page.text)[1]
+        self.assertEqual(self.client.post('/api/control/prepare',base_url=ORIGIN,headers={'Origin':ORIGIN},json={'action':'server_restart'}).status_code,403)
+        result=self.client.post('/api/control/decide',base_url=ORIGIN,headers={'Origin':ORIGIN,'X-CSRF-Token':token},json={'id':'a'*32,'confirm':True,'phrase':'wrong','restart':True})
+        self.assertEqual(result.status_code,403)
 
 if __name__ == '__main__':
     unittest.main()

@@ -179,6 +179,9 @@ class Broker:
     def handle(self,request):
         if not isinstance(request,dict):
             raise Invalid('schema')
+        if request.get('op') in {'web_status','web_prepare','web_decide','web_job','web_read'}:
+            if not hasattr(self,'control'):return {'ok':False,'code':'unsupported'}
+            return self.control.handle(request)
         if request == {'op':'health'}:
             return {'ok':True}
         if request == {'op':'overview'}:
@@ -234,6 +237,8 @@ def main():
     os.chmod(Path(SOCKET).parent,0o750)
     key = (Path(os.environ['CREDENTIALS_DIRECTORY'])/'web-session-key').read_bytes()
     broker = Broker(Store(ROOT,grp.getgrnam('kiagent').gr_gid,key))
+    from web_control import WebControl
+    broker.control=WebControl(ROOT,STATE.parent/'actions',broker.lock,guard=durable_state)
     Path(SOCKET).unlink(missing_ok=True)
     with socket.socket(socket.AF_UNIX) as server:
         server.bind(SOCKET)

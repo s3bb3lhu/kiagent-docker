@@ -140,3 +140,7 @@ Python-Image und Abhängigkeiten sind per Digest beziehungsweise Hash festgelegt
 ## Portable Weitergabe und Passwort-Reset
 
 Siehe [DISTRIBUTION.md](DISTRIBUTION.md) für die portable Weboberfläche unter Linux sowie Linux-Container-Umgebungen auf Windows, die verfügbaren Host-Adapter und den Reset ohne Einrichtungscode. Die portable Oberfläche bietet noch keine Windows-Hostaktionen. Passwortänderungen sind nach Anmeldung direkt auf `/password` möglich. Authentifizierungsdaten liegen getrennt in `/var/lib/kiagent-web/auth` beziehungsweise im portablen Volume. Eine Wiederherstellung dieser Daten reaktiviert alte Web-Zugänge; bei einer Wiederherstellung stattdessen einen administrativen Reset durchführen. Diese Web-Auth-Dateien sind nicht Teil der bisherigen täglichen Konfigurationssicherung.
+
+## Status, Steuerung und Darstellung
+
+Das neue Dashboard enthält Host-Status mit Drei-Sekunden-Aktualisierung, bestätigte Steueraktionen, Server-Neustart, Tag-/Nachtmodus und die Sprachen Deutsch, Englisch, Spanisch und Französisch. Siehe [DASHBOARD.md](DASHBOARD.md) für Ausführungsgrenzen und den gesicherten Update-Installer.

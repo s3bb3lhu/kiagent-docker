@@ -200,7 +200,7 @@ def main():
             if json.load(response).get('ok') is not True:
                 raise ValueError('HTTPS-Status nicht bereit.')
         with opener.open('https://'+address+'/login',timeout=20) as response:
-            if 'Secure' not in response.headers.get('Set-Cookie','') or 'Administrator-Passwort' not in response.read().decode():
+            if 'Secure' not in response.headers.get('Set-Cookie','') or 'name="password"' not in response.read().decode():
                 raise ValueError('Sichere Anmeldung nicht bereit.')
         replace('/etc/systemd/system/kiagent-certbot.service',SERVICE.encode())
         replace('/etc/systemd/system/kiagent-certbot.timer',TIMER.encode())

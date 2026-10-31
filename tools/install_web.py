@@ -141,7 +141,7 @@ def main():
         env = dict(line.split('=',1) for line in env_file.read_text().splitlines() if line and not line.startswith('#'))
         env.update(CONFIG_UID=str(account.pw_uid),CONFIG_GID=str(account.pw_gid),CONFIG_ORIGIN=ORIGIN,CONFIG_SETUP_LOCAL_ONLY='1')
         replace(env_file,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
-        for name in ('config_store.py','config_broker.py'):
+        for name in ('config_store.py','config_broker.py','web_control.py','web_status.py'):
             replace('/usr/local/lib/kiagent-config/'+name,payload[Path('host')/name])
         for name in ('kiagent-config.service','kiagent-docker.service'):
             replace('/etc/systemd/system/'+name,payload[Path('host/systemd')/name])

@@ -13,9 +13,24 @@ import time
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
-from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template as original_render, request, session, url_for
 from werkzeug.exceptions import HTTPException
 from web_auth import AuthStore,POLICY,valid_password
+from web_i18n import LANGUAGES,catalog
+
+def language():
+    value=request.args.get('lang',request.cookies.get('kiagent_language','de'))
+    return value if value in LANGUAGES else 'de'
+
+def render_template(name,**values):
+    modes={'config_login.html':'login','config_password.html':'setup' if values.get('setup') else 'password','config_error.html':'error'}
+    if name in modes:
+        values['auth_mode']=modes[name]
+        error=values.get('error','') or ''
+        values['error_key']='too_many' if 'viele' in error else 'password_mismatch' if 'überein' in error else 'wrong_password' if 'Passwort stimmt' in error else 'password_policy' if 'Mindestens' in error else 'validation'
+        values['page_active']='setup' if values['auth_mode']=='setup' else 'password_change' if values['auth_mode']=='password' else 'login'
+        name='dashboard_auth.html'
+    return original_render(name,**values)
 
 MESSAGES = {
     'schema':'Die Eingabe konnte nicht gelesen werden. Bitte die Seite neu laden.',
@@ -42,7 +57,7 @@ MESSAGES = {
 
 def exchange(payload):
     with socket.socket(socket.AF_UNIX) as sock:
-        sock.settimeout(10)
+        sock.settimeout(35 if payload.get('op')=='web_prepare' else 10)
         sock.connect('/run/kiagent-config/control.sock')
         sock.sendall(json.dumps(payload).encode()+b'\n')
         raw = bytearray()
@@ -86,6 +101,13 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
             session['csrf'] = secrets.token_urlsafe(32)
         return session['csrf']
 
+    @app.context_processor
+    def ui_context():
+        lang=language();words=catalog(lang)
+        return {'lang':lang,'ui':words,'t':lambda key:words.get(key,key),'languages':LANGUAGES,
+                'theme':request.cookies.get('kiagent_theme','light') if request.cookies.get('kiagent_theme') in {'light','dark'} else 'light',
+                'csrf':csrf(),'public_address':origin,'auth_mode':None}
+
     @app.before_request
     def check_request():
         # The TLS proxy passes a fixed Host. Never trust client-supplied forwarded headers.
@@ -104,6 +126,9 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
 
     @app.after_request
     def headers(response):
+        if request.args.get('lang') in LANGUAGES:
+            response.set_cookie('kiagent_language',language(),max_age=31536000,secure=public_tls,samesite='Strict')
+        response.headers['Content-Language']=language()
         if public_tls:
             response.headers['Strict-Transport-Security'] = 'max-age=86400'
         response.headers.update({'Cache-Control':'no-store','Pragma':'no-cache',
@@ -116,8 +141,9 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         def wrapper(*args,**kwargs):
             if session.get('authenticated') is not True or auth.read()['mode']!='ready':
                 if request.path.startswith('/api/'):
-                    return jsonify(ok=False,message='Bitte anmelden.'),401
+                    return jsonify(ok=False,message=catalog(language())['login_required']),401
                 return redirect(url_for('login'))
+            if 'web_actor' not in session:session['web_actor']=secrets.token_hex(32)
             return function(*args,**kwargs)
         return wrapper
 
@@ -125,9 +151,11 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         try:
             reply = backend(payload)
         except Exception:
-            return {'ok':False,'message':'Die Konfiguration ist derzeit nicht erreichbar.'}
+            return {'ok':False,'code':'unavailable','message':catalog(language())['unavailable']}
         if not reply.get('ok'):
-            return {'ok':False,'message':MESSAGES.get(reply.get('code'),MESSAGES['internal'])}
+            code=reply.get('code','internal')
+            return {'ok':False,'code':code,'message':catalog(language()).get(code,catalog(language())['error'])}
+        if reply.get('state')=='saved':reply['message']=catalog(language())['saved']
         return reply
 
     @app.route('/login',methods=['GET','POST'])
@@ -222,7 +250,58 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     @app.get('/')
     @authenticated
     def index():
-        return render_template('config_index.html',csrf=csrf())
+        return render_template('dashboard_connections.html',csrf=csrf(),page_active='connections')
+
+    @app.get('/status')
+    @authenticated
+    def status_page():return render_template('dashboard_status.html',csrf=csrf(),page_active='status')
+
+    @app.get('/control')
+    @authenticated
+    def control_page():return render_template('dashboard_control.html',csrf=csrf(),page_active='control')
+
+    def actor():
+        if 'web_actor' not in session:session['web_actor']=secrets.token_hex(32)
+        return hashlib.sha256((session['web_actor']+session['epoch']).encode()).hexdigest()
+
+    @app.get('/api/server/status')
+    @authenticated
+    def server_status():
+        result=rpc({'op':'web_status'})
+        return jsonify(result),200 if result.get('ok') else 503
+
+    @app.post('/api/control/read')
+    @authenticated
+    def control_read():
+        data=request.get_json(silent=True)
+        if not isinstance(data,dict) or set(data)!={'command'}:abort(400)
+        result=rpc({'op':'web_read','actor':actor(),'command':data['command']})
+        return jsonify(result),200 if result.get('ok') else 400
+
+    @app.post('/api/control/prepare')
+    @authenticated
+    def control_prepare():
+        data=request.get_json(silent=True)
+        if not isinstance(data,dict) or set(data)!={'action'}:abort(400)
+        result=rpc({'op':'web_prepare','actor':actor(),'action':data['action']})
+        return jsonify(result),200 if result.get('ok') else 400
+
+    @app.post('/api/control/decide')
+    @authenticated
+    def control_decide():
+        data=request.get_json(silent=True)
+        if not isinstance(data,dict) or set(data)!={'id','confirm','phrase','restart'} or type(data['confirm']) is not bool or type(data['restart']) is not bool:abort(400)
+        # Require the typed phrase for every confirmation. The root-bound job,
+        # never the client action field, determines what will actually execute.
+        if data['confirm'] and data['phrase']!=catalog(language())['restart_word']:abort(403)
+        result=rpc({'op':'web_decide','actor':actor(),'id':data['id'],'confirm':data['confirm']})
+        return jsonify(result),200 if result.get('ok') else 400
+
+    @app.get('/api/control/jobs/<job>')
+    @authenticated
+    def control_job(job):
+        result=rpc({'op':'web_job','actor':actor(),'id':job})
+        return jsonify(result),200 if result.get('ok') else 400
 
     @app.get('/api/overview')
     @authenticated
@@ -260,5 +339,5 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         if request.path in {'/login','/setup','/password','/'}:
             app.logger.warning('Web request rejected: status=%s type=%s',code,type(error).__name__)
             return render_template('config_error.html',message=('Die Sitzung ist abgelaufen oder das Sicherheits-Cookie fehlt. Öffne die Anmeldung neu und erlaube Cookies für diese Seite.' if code==403 else 'Die Anfrage konnte nicht verarbeitet werden. Bitte die Seite neu öffnen.')),code
-        return jsonify(ok=False,message='Anfrage nicht erlaubt oder nicht verfügbar.'),code
+        return jsonify(ok=False,message=catalog(language())['error']),code
     return app
