@@ -8,6 +8,7 @@ import secrets
 import shutil
 import stat
 import subprocess
+import sys
 from pathlib import Path
 
 HOST=Path('/host')
@@ -52,6 +53,12 @@ if [ ! -x /usr/bin/openssl ]; then /usr/bin/apt-get install -y --no-install-reco
 '''
     subprocess.run(NAMESPACE+['/bin/sh','-c',script],check=True,env=child_env(),timeout=600)
 
+def detached_runner():
+    # -I deliberately omits the script directory; load only our own packaged tools.
+    sys.path.insert(0,str(Path(__file__).resolve().parent))
+    from unattended_bootstrap import run
+    return run
+
 def parameters(address,admin_ip,port):
     address=str(ipaddress.IPv4Address(address));admin_ip=str(ipaddress.ip_address(admin_ip));port=int(port)
     if not ipaddress.ip_address(address).is_global:raise ValueError('Fuer vertrauenswuerdiges HTTPS wird eine oeffentliche IPv4-Adresse benoetigt.')
@@ -85,8 +92,7 @@ def main():
     facts=host_probe()
     if args.detached:
         if args.check or args.resume_network or args.web_only:raise ValueError('Unzulaessige Kombination der Installationsmodi.')
-        from unattended_bootstrap import run
-        run(host_probe,stage_payload,NAMESPACE,child_env);return
+        detached_runner()(host_probe,stage_payload,NAMESPACE,child_env);return
     if args.check:
         print(json.dumps({'result':'ready','host':facts,'host_files_changed':False}));return
     if not args.resume_network and (facts['installed'] or facts['configured']):raise SystemExit('Vorhandene Installation erkannt. Kein Ueberschreiben; fuer Migration zuerst gesondert pruefen.')

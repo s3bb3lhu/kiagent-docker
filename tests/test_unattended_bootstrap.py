@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -59,5 +60,9 @@ class UnattendedTests(unittest.TestCase):
         text=(ROOT/'compose.yaml').read_text()
         self.assertIn('command: [--detached]',text);self.assertIn("restart: 'no'",text)
         self.assertNotIn('KIAGENT_SECRETS_DIR',text);self.assertNotIn('DISCORD_APPLICATION_ID',text)
+
+    def test_entrypoint_can_load_its_runner_under_python_isolation(self):
+        code='import runpy; module=runpy.run_path('+repr(str(ROOT/'tools/compose_bootstrap.py'))+'); assert callable(module["detached_runner"]())'
+        subprocess.run([sys.executable,'-I','-B','-c',code],check=True,capture_output=True)
 
 if __name__=='__main__':unittest.main()

@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 import socket
 import ssl
 import subprocess
@@ -19,7 +20,11 @@ def wait_setup():
     while time.monotonic()<deadline:
         state=json.loads(subprocess.check_output(['docker','inspect','--format','{{json .State}}',identifier],text=True))
         if state['Status']=='exited':
-            assert state['ExitCode']==0,{'setup_exit_code':state['ExitCode']}
+            if state['ExitCode']!=0:
+                # Export exception class names only, never log text, paths or environment.
+                logs=subprocess.check_output(['docker','logs',identifier],text=True,stderr=subprocess.STDOUT)
+                classes=sorted(set(re.findall(r'^([A-Za-z]+Error|SystemExit):',logs,re.MULTILINE)))
+                raise AssertionError({'setup_exit_code':state['ExitCode'],'exception_classes':classes})
             return
         time.sleep(2)
     raise AssertionError('Setup did not finish')
