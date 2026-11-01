@@ -65,7 +65,11 @@ def main():
         assert before==[hashlib.sha256(path.read_bytes()).digest() for path in paths]
         print('Plain docker compose up -d: latest published stable release, trusted TLS, URL/version files, empty provider keys, repeat without update: OK')
         # Explicitly activate new frontend code on this disposable host, preserving its port/history.
-        run('/usr/bin/python3','-I','-B',str(ROOT/'tools/activate_ollama.py'),timeout=900)
+        try:run('/usr/bin/python3','-I','-B',str(ROOT/'tools/activate_ollama.py'),timeout=900)
+        except subprocess.CalledProcessError:
+            status=Path('/var/lib/kiagent-backup/status.json')
+            if status.is_file():print('Backup diagnostic: '+status.read_text(),flush=True)
+            raise
         sys.path.insert(0,str(ROOT/'src/app'))
         from ai_socket import request
         info=request({'op':'info'});assert info['provider']=='ollama' and info['ready'] and info['managed'] is False
