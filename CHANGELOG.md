@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0.1 — 2026-11-01
+
+- Remove terminal IP and certificate confirmation prompts from the standard Compose installer.
+- Discover the server and bootstrap administrator address from SSH metadata, with a unique host-login fallback for sudo.
+- Fail closed for ambiguous logins or unsupported NAT/multiple-address hosts; never expose unrestricted first setup.
+- Print the HTTPS setup URL after installation; retain browser-only password and provider configuration.
+
+
 ## 1.2.0.0 — 2026-11-01
 
 - Bootstrap only the protected web UI without requesting provider keys, bot tokens, allowlist IDs or passwords in the terminal.

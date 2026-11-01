@@ -1,6 +1,6 @@
 # AI and package installation
 
-Features and control · 1.2.0.0
+Features and control · 1.2.0.1
 
 1. /ki Install nginx recognizes an installation request and prepares an APT plan. /ki_install nginx requests a plan without AI. Enter a concrete package name on Control. Valid packages from configured APT repositories are allowed; URLs, local .deb files and shell options are not.
 

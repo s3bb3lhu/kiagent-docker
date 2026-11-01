@@ -1,6 +1,6 @@
 # État, cœurs et apparence
 
-Fonctions et commandes · 1.2.0.0
+Fonctions et commandes · 1.2.0.1
 
 1. État affiche CPU de l’hôte, tous les cœurs logiques, RAM, durée d’activité, disques, systèmes de fichiers, débits et IP attribuées. Actualisation toutes les trois secondes dans un onglet visible. CPU et réseau exigent deux mesures ; une déconnexion marque les données périmées.
 

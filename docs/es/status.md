@@ -1,6 +1,6 @@
 # Estado, núcleos y apariencia
 
-Funciones y control · 1.2.0.0
+Funciones y control · 1.2.0.1
 
 1. Estado muestra CPU del servidor, todos los núcleos lógicos, RAM, tiempo activo, discos, sistemas de archivos, tasas de red e IP asignadas. Actualiza cada tres segundos en pestañas visibles. CPU y red necesitan dos muestras; una desconexión marca datos obsoletos.
 

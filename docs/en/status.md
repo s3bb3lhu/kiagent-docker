@@ -1,6 +1,6 @@
 # Status, CPU cores and appearance
 
-Features and control · 1.2.0.0
+Features and control · 1.2.0.1
 
 1. Status shows host CPU, every logical core, RAM, uptime, disks, filesystems, network rates and assigned IP addresses. Visible tabs update every three seconds. CPU and network rates need two samples; lost connections mark readings stale.
 

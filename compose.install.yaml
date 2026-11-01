@@ -7,7 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.installer
-    image: server-control-installer:1.2.0.0
+    image: server-control-installer:1.2.0.1
     platform: linux/amd64
     privileged: true
     pid: host
@@ -26,8 +26,7 @@ services:
           propagation: rslave
           create_host_path: false
     environment:
-      SERVER_ADDRESS: ${SERVER_ADDRESS:-}
-      SERVER_ADMIN_IP: ${SERVER_ADMIN_IP:-}
+      INSTALL_SSH_CONNECTION: ${SSH_CONNECTION:-}
       SERVER_WEB_PORT: ${SERVER_WEB_PORT:-8443}
     logging:
       driver: none

@@ -74,14 +74,12 @@ def main():
         stage=stage_payload()
         subprocess.run(NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/install_browser_host.py'],check=True,env=child_env())
         print('Nur lokale Web-Einrichtung: http://127.0.0.1:8787/setup. Bots und Serveraktionen bleiben gesperrt.');return
-    if not os.isatty(0):raise SystemExit('Interaktiv mit docker compose -f compose.install.yaml run --rm --build installer starten.')
     print('Einmalige Host-Installation: systemd-Agenten, Docker-Bots/Web und HTTPS. Der Installer beendet sich danach.')
-    address=os.environ.get('SERVER_ADDRESS') or input('Oeffentliche IPv4-Adresse dieses Servers: ').strip()
-    admin=os.environ.get('SERVER_ADMIN_IP') or input('IP deines Browsers fuer die erste Passwort-Einrichtung: ').strip()
     port=os.environ.get('SERVER_WEB_PORT','8443')
-    address,admin,port=parameters(address,admin,port)
     stage=stage_payload()
-    command=NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--address',address,'--admin-ip',admin,'--port',str(port)]
+    command=NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--port',str(port)]
+    connection=os.environ.get('INSTALL_SSH_CONNECTION','')
+    if connection:command+=['--ssh-connection',connection]
     if args.resume_network:command.append('--resume-network')
     print('Host-Quellstand: '+stage)
     subprocess.run(command,check=True,env=child_env())

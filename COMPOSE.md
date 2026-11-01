@@ -1,11 +1,11 @@
-# Docker Compose — 1.2.0.0
+# Docker Compose — 1.2.0.1
 
 Für **Telegram, Discord und echte Serversteuerung vollständig per Compose** zuerst [FULL_COMPOSE.md](FULL_COMPOSE.md) verwenden. Die folgenden Portal-Befehle sind die ausdrücklich eingeschränkte Alternative.
 
 ## Einfacher Portalstart / Portable portal
 
 ```bash
-git clone --branch v1.2.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git
+git clone --branch v1.2.0.1 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git
 cd kiagent-docker
 docker compose -f compose.quickstart.yaml up -d --build --wait
 ```

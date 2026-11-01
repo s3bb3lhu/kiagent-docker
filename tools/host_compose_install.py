@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from install_web import SOURCE,PROJECT,CONFIG,atomic
 from install_https import origin_for,web_port
+from network_defaults import discover
 MARKER=CONFIG/'compose-install.json'
 
 def marker_read():
@@ -23,9 +24,13 @@ def marker_read():
     return data
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--address',required=True);parser.add_argument('--admin-ip',required=True);parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');args=parser.parse_args()
     if os.geteuid()!=0:raise SystemExit('Host-Installation benoetigt root.')
-    address=str(ipaddress.IPv4Address(args.address));admin=str(ipaddress.ip_address(args.admin_ip));origin=origin_for(address,args.port)
+    if args.resume_network:
+        prior=marker_read();address=prior['address'];admin=prior['admin_ip']
+    elif args.address and args.admin_ip:address,admin=args.address,args.admin_ip
+    else:address,admin=discover(args.ssh_connection)
+    address=str(ipaddress.IPv4Address(address));admin=str(ipaddress.ip_address(admin));origin=origin_for(address,args.port)
     if not ipaddress.ip_address(address).is_global:raise ValueError('Oeffentliche IPv4-Adresse erforderlich.')
     if args.resume_network:
         state=marker_read()
@@ -38,10 +43,10 @@ def main():
         if Path('/etc/nginx').exists():raise SystemExit('Bestehende nginx-Installation zuerst pruefen. Keine automatische Uebernahme.')
         # Only internal session material is generated; provider credentials come from the browser.
         subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py')],check=True)
-        state={'kind':'compose-host-install-v1','origin':origin,'admin_ip':admin,'network_ready':False}
+        state={'kind':'compose-host-install-v1','origin':origin,'address':address,'admin_ip':admin,'network_ready':False}
         atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     try:
-        subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port)],check=True)
+        subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port),'--unattended'],check=True)
     except BaseException:
         print('Die Web-Grundinstallation ist vorhanden; Bots warten weiter auf Browser-Einrichtung. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
         raise

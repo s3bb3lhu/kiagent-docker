@@ -1,4 +1,4 @@
-# Vollinstallation per Docker Compose — 1.2.0.0
+# Vollinstallation per Docker Compose — 1.2.0.1
 
 Diese Variante installiert und startet Telegram, Discord, Weboberfläche, Host-Lebenszeichen, begrenzte Serveraktionen und lokale Sicherungen. Die festen Root-Agenten werden vom einmaligen Installer als systemd-Dienste auf dem Linux-Host eingerichtet. Im laufenden Betrieb erhalten Bots und Weboberfläche weder einen privilegierten Container noch einen Docker-Socket.
 
@@ -7,7 +7,7 @@ Diese Variante installiert und startet Telegram, Discord, Weboberfläche, Host-L
 - Dedizierter Ubuntu-24.04-/26.04-Server, amd64, mit systemd, Python >=3.10, Docker Engine und Compose. Kein rootless Docker und kein UID-Remapping; vorhandene Schutzoptionen werden nicht abgeschaltet.
 - Öffentlich erreichbare IPv4-Adresse des Servers. Für das vertrauenswürdige IP-Zertifikat muss **TCP 80** von außen erreichbar bleiben. Der Webzugang nutzt standardmäßig **TCP 8443**, alternativ einen gewählten freien Port. Port 8787 bleibt intern.
 - Eigener Telegram-Bot samt Benutzer-ID; Discord-Anwendung, Bot, Benutzer-, Server- und private Kanal-ID. IDs und Tokens werden erst nach dem Docker-Start in der geschützten Weboberfläche eingegeben. OpenAI und Healthchecks sind optional. Niemand muss Zugangsdaten im Chat oder Repository veröffentlichen.
-- Die IP-Adresse des Browsers für die erste Passwort-Einrichtung. Diese IP wird für `/setup` freigegeben; später schützt das selbst gewählte Passwort die Anmeldung.
+- Installation aus einer direkten SSH-Sitzung; Browser und SSH verwenden denselben Internetzugang. Die Adresse für die Ersteinrichtung wird automatisch erkannt. Bei `sudo` nutzt der Installer ersatzweise die eindeutige aktive SSH-Anmeldung des Hosts.
 - RAID-Funktionen benötigen tatsächlich vorhandenes mdadm/RAID und eingerichtete Alarmempfänger. Ohne RAID-Geräte das Feld leer lassen; die Automatik bleibt bei einer Neuinstallation ausgeschaltet. Es werden keine Laufwerke formatiert und kein RAID angelegt.
 
 Windows Server benötigt eine entsprechende Linux-VM. Docker Desktop beziehungsweise ein nativer Windows-Container ist kein unterstützter Host für die vollständige Serversteuerung. Das reine Konfigurationsportal bleibt separat verfügbar.
@@ -17,14 +17,16 @@ Windows Server benötigt eine entsprechende Linux-VM. Docker Desktop beziehungsw
 Auf einem frischen, geeigneten Server:
 
 ```bash
-git clone --branch v1.2.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.2.0.0
-cd kiagent-docker-1.2.0.0
+git clone --branch v1.2.0.1 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.2.0.1
+cd kiagent-docker-1.2.0.1
 docker compose -f compose.install.yaml run --rm --build installer
 ```
 
-Falls dein Benutzer Docker nicht direkt bedienen darf, denselben Compose-Befehl mit `sudo` ausführen. `run` ist absichtlich interaktiv: Der Installer fragt ausschließlich nach Server-IPv4 und Administrator-IP. API-Keys, Bot-Tokens, Freigabe-IDs und das Web-Passwort werden nicht im Terminal abgefragt. Die Zustimmung zu den Zertifikatsbedingungen erfolgt im eigenen Terminal. Nicht mit `up -d` starten; das Installationsprofil ist gegen einen versehentlichen automatischen Start geschützt.
+Falls dein Benutzer Docker nicht direkt bedienen darf, denselben Compose-Befehl mit `sudo` ausführen. Im Terminal gibt es keine Eingabeabfragen. Server-IP und die für `/setup` zugelassene Administrator-Adresse werden automatisch aus der SSH-Verbindung beziehungsweise der eindeutigen Host-Anmeldung und den öffentlichen Netzwerkschnittstellen erkannt. Danach wird die fertige Webadresse ausgegeben. Passwort, Dienst-IDs, API-Keys und Bot-Tokens werden ausschließlich auf der Seite eingegeben. Der Installer richtet das HTTPS-Zertifikat automatisch bei Let's Encrypt ein und verwendet dessen veröffentlichte [Nutzungsbedingungen](https://letsencrypt.org/repository/). Nicht mit `up -d` starten; das Installationsprofil ist gegen einen versehentlichen automatischen Start geschützt.
 
-**Dieser einmalige Installer hat Administratorrechte:** privilegierter Container, Host-PID-Namensraum und schreibbarer Mount `/` nach `/host`. Er installiert Host-Dienste, startet den verwalteten Compose-Stack und richtet nginx/Certbot ein. Der Container endet danach und wird durch `--rm` entfernt. Diese Rechte gehen nicht an die laufenden App-Container. Der Installer hat keinen unbeaufsichtigten Wiederanlauf und speichert keine Docker-Protokolle; Eingaben erfolgen im Terminal.
+Ohne eindeutig erkennbare SSH-Adresse oder bei mehreren unterschiedlichen angemeldeten Gegenstellen wird vor der Host-Konfiguration abgebrochen. Es wird keine ungeschützte öffentliche Ersteinrichtung freigegeben. Bei NAT oder mehreren öffentlichen Server-Adressen ist dieser automatische Standardweg nicht unterstützt.
+
+**Dieser einmalige Installer hat Administratorrechte:** privilegierter Container, Host-PID-Namensraum und schreibbarer Mount `/` nach `/host`. Er installiert Host-Dienste, startet den verwalteten Compose-Stack und richtet nginx/Certbot ein. Der Container endet danach und wird durch `--rm` entfernt. Diese Rechte gehen nicht an die laufenden App-Container. Der Installer hat keinen unbeaufsichtigten Wiederanlauf und speichert keine Docker-Protokolle; Es werden keine Zugangsdaten im Terminal eingegeben.
 
 Er prüft vor dem Schreiben Betriebssystem, Docker-Modus, belegte Ports und vorhandene Installationen. Ein vorhandenes `/opt/kiagent-docker/project`, `/etc/kiagent-docker` oder eine fremde nginx-Konfiguration wird nicht blind überschrieben. Für bestehende Installationen ist eine gesondert geprüfte Migration nötig. Die Installation verändert keine SSH-Anmeldeverfahren und keine Cloud-Firewall.
 
@@ -50,7 +52,7 @@ Alternativ eine `.env` im Projektverzeichnis anlegen:
 SERVER_WEB_PORT=9443
 ```
 
-Optional können dort `SERVER_ADDRESS` und `SERVER_ADMIN_IP` stehen. Das sind eigene öffentliche Netzwerkangaben, keine Tokens. `.env` ist nicht für Git vorgesehen. Zulässig sind Port 443 oder 1024–65535 außer dem intern reservierten 8787. Ein belegter Port wird nicht übernommen. Cloud-Firewall beziehungsweise NAT müssen TCP 80 und den gewählten Web-Port durchlassen.
+Die Server- und Administrator-IP werden nicht per `.env` abgefragt. `.env` ist nicht für Git vorgesehen. Zulässig sind Port 443 oder 1024–65535 außer dem intern reservierten 8787. Ein belegter Port wird nicht übernommen. Cloud-Firewall beziehungsweise NAT müssen TCP 80 und den gewählten Web-Port durchlassen.
 
 ## Laufenden Stack bedienen
 

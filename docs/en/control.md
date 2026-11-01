@@ -1,6 +1,6 @@
 # Commands and server restart
 
-Features and control · 1.2.0.0
+Features and control · 1.2.0.1
 
 1. Telegram: /status, /ram, /disk, /uptime and /diagnose read status or prepare an AI diagnosis. /ki answers questions or plans installs. Discord provides /status, /ki, /ki_install, /ki_install_status and automation commands. The bots do not have identical command sets.
 

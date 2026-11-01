@@ -118,6 +118,7 @@ def main():
     parser.add_argument('--address',required=True)
     parser.add_argument('--admin-ip')
     parser.add_argument('--port',type=web_port,default=443)
+    parser.add_argument('--unattended',action='store_true',help='Compose installation: issue HTTPS certificate without terminal questions.')
     args = parser.parse_args()
     address = str(ipaddress.IPv4Address(args.address))
     origin=origin_for(address,args.port)
@@ -142,7 +143,7 @@ def main():
     print('HTTPS fuer '+origin+'. TCP-Port 80 und '+str(args.port)+' muessen erreichbar sein.')
     print('Zertifikate werden bei Let\'s Encrypt angefordert und automatisch erneuert.')
     print('Nutzungsbedingungen: https://letsencrypt.org/repository/')
-    if input('Diesen Bedingungen zustimmen und HTTPS einrichten? JA eingeben: ').strip()!='JA':
+    if not args.unattended and input('Diesen Bedingungen zustimmen und HTTPS einrichten? JA eingeben: ').strip()!='JA':
         raise SystemExit('Abgebrochen. Keine Aenderungen.')
     run(['/usr/bin/systemctl','start','kiagent-backup.service'])
     backup = Path('/var/backups')/('kiagent-https-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
