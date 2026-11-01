@@ -1,6 +1,6 @@
 # SSH Console: Aktivitäten lesen
 
-Funktionen & Steuerung · 1.1.0.0
+Funktionen & Steuerung · 1.2.0.0
 
 1. Die SSH Console ist eine lesende Aktivitätsansicht, keine interaktive Shell. Sie zeigt feste Bearbeitungsphasen der KI seit dem letzten Bot-Neustart sowie die jüngsten Paket- und Webaufträge. Fragen, Antworten und Tokens erscheinen nicht.
 

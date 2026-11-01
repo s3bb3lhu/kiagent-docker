@@ -90,9 +90,11 @@ class WebControl:
 
     def handle(self,packet):
         op=packet.get('op')
+        pending=(self.root/'pending-setup').exists()
         if packet=={'op':'web_status'}:
             data=self.telemetry.read()
-            return {'ok':True,'data':data,'control_available':True,'server_clock':{'timestamp':time.time(),'timezone':data.get('server_timezone','UTC')}}
+            return {'ok':True,'data':data,'control_available':not pending,'setup_required':pending,'server_clock':{'timestamp':time.time(),'timezone':data.get('server_timezone','UTC')}}
+        if pending:return {'ok':False,'code':'setup_required'}
         if packet=={'op':'web_activity'}:
             from web_activity import collect
             from config_broker import COMPOSE

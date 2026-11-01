@@ -1,6 +1,6 @@
 # RAID monitoring and automation
 
-Settings and connections · 1.1.0.0
+Settings and connections · 1.2.0.0
 
 1. In Settings → Monitoring enter existing md device names such as md4. RAID members, partitions and synchronization are not changed. A resync with degraded=0 is not proof of disk failure.
 

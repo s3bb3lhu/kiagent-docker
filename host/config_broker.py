@@ -86,6 +86,9 @@ def barrier(path,packet):
     run(['/usr/bin/setpriv','--reuid='+str(account.pw_uid),'--regid='+str(gid),'--clear-groups','--','/usr/bin/python3','-I','-c',code],timeout=70)
 
 def apply_configuration(store,prepared,progress):
+    if (store.root/'pending-setup').exists():
+        from first_setup import apply_first_configuration
+        return apply_first_configuration(store,prepared,progress,run=run,login_check=check_logins,state_read=durable_state,barrier=barrier,compose=COMPOSE)
     check_logins(prepared)
     if store.revision() != prepared['revision']:
         raise Invalid('stale')
@@ -186,7 +189,7 @@ class Broker:
             return {'ok':True}
         if request == {'op':'overview'}:
             data = self.previous if self.active and self.previous else self.store.overview()
-            return {'ok':True,**data,'busy':self.active is not None,'job':self.active,'blocked':self.blocked}
+            return {'ok':True,**data,'busy':self.active is not None,'job':self.active,'blocked':self.blocked,'setup_required':(self.store.root/'pending-setup').exists()}
         if set(request) == {'op','job'} and request['op'] == 'job':
             job = request['job']
             if not isinstance(job,str) or len(job)!=32 or any(c not in '0123456789abcdef' for c in job):

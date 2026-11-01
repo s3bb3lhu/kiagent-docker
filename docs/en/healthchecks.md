@@ -1,6 +1,6 @@
 # Healthchecks: heartbeats and alerts
 
-Settings and connections · 1.1.0.0
+Settings and connections · 1.2.0.0
 
 1. Create separate server and bot checks in your Healthchecks account. Copy their UUID ping URLs and assign them in Settings → Healthchecks. Ping URLs are required, not a management API key.
 

@@ -117,6 +117,8 @@ class Store:
                 raise Invalid('schema')
             desired['secrets/'+name] = (value+'\n').encode()
         env = dict(line.split('=',1) for line in raw['deployment.env'].decode().splitlines() if line and not line.startswith('#'))
+        for key in ('telegram','discord'):
+            validate_secret(key,desired['secrets/'+SECRET_FILES[key]].decode().strip())
         env['DISCORD_APPLICATION_ID'] = str(application)
         env['KIAGENT_RAID_DEVICES'] = raids
         desired['deployment.env'] = ('\n'.join(k+'='+v for k,v in env.items())+'\n').encode()

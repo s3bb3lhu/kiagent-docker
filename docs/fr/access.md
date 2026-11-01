@@ -1,6 +1,6 @@
 # Connexion, mot de passe et HTTPS
 
-Paramètres et connexions · 1.1.0.0
+Paramètres et connexions · 1.2.0.0
 
 1. Ouvrez /setup lors de la première configuration. Aucun mot de passe par défaut ni code. Utilisez au moins 8 caractères dont une majuscule, un chiffre et un caractère spécial, sans espace. L’initialisation HTTPS publique est limitée à l’IP de l’administrateur.
 

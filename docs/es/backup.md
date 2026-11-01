@@ -1,6 +1,6 @@
 # Copias de seguridad y recuperación
 
-Operación y mantenimiento · 1.1.0.0
+Operación y mantenimiento · 1.2.0.0
 
 1. La instalación Linux administrada respalda cada día a las 03:15 Europe/Berlin en /var/backups/kiagent-daily. Contiene credenciales y una copia SQLite coherente, solo legible por root. No borra archivos antiguos automáticamente; vigila el espacio.
 

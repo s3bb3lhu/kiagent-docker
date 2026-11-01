@@ -158,5 +158,17 @@ class WebTests(unittest.TestCase):
         result=self.client.post('/api/control/decide',base_url=ORIGIN,headers={'Origin':ORIGIN,'X-CSRF-Token':token},json={'id':'a'*32,'confirm':True,'phrase':'wrong','restart':True})
         self.assertEqual(result.status_code,403)
 
+    def test_pending_setup_redirects_to_combined_browser_wizard(self):
+        root=Path(self.temporary.name)
+        self.app=create_app(root,lambda packet:{'ok':True,'setup_required':True},ORIGIN,state_dir=root/'auth')
+        self.client=self.app.test_client();self.login()
+        self.assertEqual(self.get('/').headers['Location'],'/settings/setup')
+        self.assertEqual(self.get('/settings/telegram').headers['Location'],'/settings/setup')
+        for lang in LANGUAGES:
+            response=self.get('/settings/setup?lang='+lang)
+            self.assertEqual(response.status_code,200)
+            self.assertIn('data-provider="all"',response.text)
+            for key in ('telegram','discord','openai','hc_bot','hc_server'):self.assertIn('data-secret="'+key+'"',response.text)
+
 if __name__ == '__main__':
     unittest.main()

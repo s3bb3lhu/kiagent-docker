@@ -1,6 +1,6 @@
 # Backups and recovery
 
-Operation and maintenance · 1.1.0.0
+Operation and maintenance · 1.2.0.0
 
 1. The managed Linux installation backs up daily at 03:15 Europe/Berlin to /var/backups/kiagent-daily. Archives contain private credentials and a consistent SQLite snapshot and are root-only. Old archives are not automatically deleted; monitor free space.
 

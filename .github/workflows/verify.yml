@@ -27,3 +27,5 @@ jobs:
         run: sudo python3 tools/test_portable.py
       - name: Check one-shot installer host namespace without installing services
         run: sudo docker compose -f compose.install.yaml run --rm --build -T installer --check
+      - name: Exercise fresh web-first installation without provider credentials
+        run: sudo --preserve-env=GITHUB_ACTIONS python3 tools/test_browser_bootstrap.py

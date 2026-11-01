@@ -1,6 +1,6 @@
 # IA e instalación de paquetes
 
-Funciones y control · 1.1.0.0
+Funciones y control · 1.2.0.0
 
 1. /ki Instala nginx reconoce la solicitud y prepara un plan APT. /ki_install nginx lo pide sin IA. En Control introduce un paquete concreto. Se permiten paquetes válidos de repositorios configurados; no URLs, archivos .deb locales ni opciones shell.
 

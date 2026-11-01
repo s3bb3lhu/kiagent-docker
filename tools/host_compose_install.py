@@ -36,17 +36,18 @@ def main():
         listeners=subprocess.check_output(['/usr/bin/ss','-H','-lnt'],text=True)
         if any(line.split()[3].endswith((':80',':'+str(args.port),':8787')) for line in listeners.splitlines()):raise SystemExit('Ein benoetigter Port ist belegt. Keine Installation gestartet.')
         if Path('/etc/nginx').exists():raise SystemExit('Bestehende nginx-Installation zuerst pruefen. Keine automatische Uebernahme.')
-        # Existing installers collect credentials using getpass on this terminal.
-        subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install.py')],check=True)
+        # Only internal session material is generated; provider credentials come from the browser.
+        subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py')],check=True)
         state={'kind':'compose-host-install-v1','origin':origin,'admin_ip':admin,'network_ready':False}
         atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     try:
         subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port)],check=True)
     except BaseException:
-        print('Host-Dienste und Bots sind installiert. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
+        print('Die Web-Grundinstallation ist vorhanden; Bots warten weiter auf Browser-Einrichtung. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
         raise
     state['network_ready']=True;atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     print('Vollinstallation bereit: '+origin+'/setup')
+    print('Dort Passwort festlegen und danach Dienst-IDs sowie API-Keys/Bot-Tokens eingeben. Erst nach erfolgreicher Pruefung werden Bots und Host-Aktionen aktiviert.')
     print('Runtime: docker compose --env-file /etc/kiagent-docker/deployment.env -f /opt/kiagent-docker/project/compose.yaml ps')
 
 if __name__=='__main__':main()

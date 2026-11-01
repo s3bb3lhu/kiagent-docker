@@ -1,6 +1,6 @@
 # OpenAI: clave API e IA
 
-Ajustes y conexiones · 1.1.0.0
+Ajustes y conexiones · 1.2.0.0
 
 1. Abre API keys, elige tu proyecto y crea una clave secreta nueva. Introdúcela directamente en Ajustes → OpenAI. Revisa permisos, acceso al modelo y facturación del proyecto. Nunca envíes credenciales por chat.
 

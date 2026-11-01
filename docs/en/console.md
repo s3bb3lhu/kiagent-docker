@@ -1,6 +1,6 @@
 # SSH Console: reading activity
 
-Features and control · 1.1.0.0
+Features and control · 1.2.0.0
 
 1. SSH Console is a read-only activity view, not an interactive shell. It shows fixed AI processing phases since the last bot restart and recent package/web jobs. Questions, answers and tokens are excluded.
 

@@ -255,6 +255,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     @app.get('/')
     @authenticated
     def index():
+        if rpc({'op':'overview'}).get('setup_required'):return redirect('/settings/setup')
         return render_template('dashboard_status.html',csrf=csrf(),page_active='status')
 
     @app.get('/settings')
@@ -273,10 +274,16 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         if document is None:abort(404)
         return render_template('dashboard_docs.html',csrf=csrf(),page_active='settings',doc_categories=categories(language()),document=document)
 
+    @app.get('/settings/setup')
+    @authenticated
+    def initial_configuration_page():
+        return render_template('dashboard_connections.html',csrf=csrf(),page_active='settings',selected_provider='all')
+
     @app.get('/settings/<provider>')
     @authenticated
     def settings_provider(provider):
         if provider not in {'telegram','discord','openai','health','monitoring'}:abort(404)
+        if rpc({'op':'overview'}).get('setup_required'):return redirect('/settings/setup')
         return render_template('dashboard_connections.html',csrf=csrf(),page_active='settings',selected_provider=provider)
 
     @app.get('/console')

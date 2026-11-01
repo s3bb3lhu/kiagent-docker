@@ -1,10 +1,10 @@
 # Serversteuerung / Server Control — Kiagent Docker
 
-**Version 1.1.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.1.0.0)
+**Version 1.2.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.2.0.0)
 
 Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md). In der angemeldeten Oberfläche: **Einstellungen → Dokumentation**. Veröffentlichungsstand und Grenzen: [RELEASE.md](RELEASE.md) und [CHANGELOG.md](CHANGELOG.md).
 
-Selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Sie werden bei der Installation lokal eingegeben.
+Selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Im neuen Compose-Installationsweg werden sie erst nach dem Web-Start im Browser eingegeben.
 
 ## Vollständig per Compose installieren und starten
 
@@ -14,7 +14,7 @@ Die neue [Vollinstallations-Anleitung](FULL_COMPOSE.md) richtet mit einem einmal
 docker compose -f compose.install.yaml run --rm --build installer
 ```
 
-Dieser ausdrücklich privilegierte Einmal-Installer benötigt Hostzugriff und fragt Zugangsdaten im eigenen Terminal ab. Er wird anschließend entfernt; die laufenden Bots/Webcontainer bleiben ohne diese Rechte. Bestehende Installationen werden nicht überschrieben. Für Zertifikate muss TCP 80 sowie der gewählte Web-Port erreichbar sein. Details und Wiederaufnahme: [FULL_COMPOSE.md](FULL_COMPOSE.md).
+Dieser ausdrücklich privilegierte Einmal-Installer benötigt Hostzugriff und fragt nur die Netzwerkangaben im Terminal ab. Passwort, Dienst-IDs, API-Keys und Bot-Tokens werden danach im Browser eingegeben; bis zur erfolgreichen Aktivierung laufen keine Bots oder Host-Aktionen. Er wird anschließend entfernt; die laufenden Bots/Webcontainer bleiben ohne diese Rechte. Bestehende Installationen werden nicht überschrieben. Für Zertifikate muss TCP 80 sowie der gewählte Web-Port erreichbar sein. Details und Wiederaufnahme: [FULL_COMPOSE.md](FULL_COMPOSE.md).
 
 ## Was enthalten ist
 
@@ -60,7 +60,7 @@ Repository mit deinem eigenen GitHub-Zugang klonen oder als ZIP herunterladen. *
 sudo python3 tools/install.py
 ```
 
-Der Installer fragt die Zugangsdaten lokal ab und führt anschließend die vorbereitete Migration aus. Die Schritte lassen sich alternativ einzeln ausführen:
+Dieser ältere manuelle Migrationsweg fragt Zugangsdaten im Terminal ab. Für die Web-Ersteinrichtung ohne Terminal-Tokens stattdessen den oben beschriebenen Compose-Installer verwenden. Er führt anschließend die vorbereitete Migration aus. Die Schritte lassen sich alternativ einzeln ausführen:
 
 ```bash
 sudo python3 tools/configure.py

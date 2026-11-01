@@ -1,6 +1,6 @@
 # KI & Paketinstallationen
 
-Funktionen & Steuerung · 1.1.0.0
+Funktionen & Steuerung · 1.2.0.0
 
 1. /ki Installiere nginx erkennt einen Installationswunsch und bereitet einen APT-Plan vor. /ki_install nginx fordert den Plan ohne KI an. Auf der Steuerungsseite einen konkreten Paketnamen eingeben. Alle gültigen Pakete aus den eingerichteten APT-Quellen sind zugelassen; keine URLs, lokalen .deb-Dateien oder Shelloptionen.
 

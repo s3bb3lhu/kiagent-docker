@@ -1,4 +1,4 @@
-# Server Control 1.1.0.0 — portable configuration portal.
+# Server Control 1.2.0.0 — portable configuration portal.
 # Build from the downloaded/cloned release directory; no prebuilt registry image required.
 # This variant has no host adapter and does not start Telegram/Discord bots.
 name: server-control-portal
@@ -7,7 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.portable
-    image: server-control-portal:1.1.0.0
+    image: server-control-portal:1.2.0.0
     user: '10001:10001'
     restart: unless-stopped
     read_only: true

@@ -48,7 +48,8 @@ class PortableBackend:
                 if packet.get('op','').startswith('web_'):return {'ok':False,'code':'unsupported'}
                 if packet=={'op':'health'}:return {'ok':True}
                 if packet=={'op':'overview'}:
-                    return {'ok':True,**self.store.overview(),'busy':False,'blocked':False,'capability_notice':NOTICE}
+                    overview=self.store.overview()
+                    return {'ok':True,**overview,'busy':False,'blocked':False,'setup_required':not all(overview['configured'][key] for key in ('telegram','discord')),'capability_notice':NOTICE}
                 if set(packet)=={'op','data'} and packet['op']=='save':
                     prepared=self.store.prepare(packet['data'])
                     if not prepared['changed']:return {'ok':True,'state':'unchanged'}

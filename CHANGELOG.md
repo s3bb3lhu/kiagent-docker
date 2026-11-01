@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0.0 — 2026-11-01
+
+- Bootstrap only the protected web UI without requesting provider keys, bot tokens, allowlist IDs or passwords in the terminal.
+- Add a combined authenticated browser setup wizard for Telegram, Discord, OpenAI, Healthchecks and monitoring.
+- Keep bot containers, host agents and web actions gated across restarts until validated browser activation.
+- Validate required tokens even when kept empty; roll back failed first activation without restoring action history.
+- Add an actual fresh web-only CI installation, checking password setup, empty provider files and blocked agents/actions.
+
 ## 1.1.0.0 — 2026-11-01
 
 - Add an explicitly privileged, one-shot Compose installer for fixed Linux host agents and the full Telegram/Discord/web stack. No privileged runtime web or bot containers.

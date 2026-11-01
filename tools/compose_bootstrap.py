@@ -63,12 +63,17 @@ def stage_payload(payload=PAYLOAD,host=HOST):
     return '/'+str(stage.relative_to(host))
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');parser.add_argument('--resume-network',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');parser.add_argument('--resume-network',action='store_true');parser.add_argument('--web-only',action='store_true',help='Loopback-only web bootstrap for isolated tests; no HTTPS or provider credentials.');args=parser.parse_args()
     os.umask(0o077)
     facts=host_probe()
     if args.check:
         print(json.dumps({'result':'ready','host':facts,'host_files_changed':False}));return
     if not args.resume_network and (facts['installed'] or facts['configured']):raise SystemExit('Vorhandene Installation erkannt. Kein Ueberschreiben; fuer Migration zuerst gesondert pruefen.')
+    if args.web_only:
+        if args.resume_network:raise SystemExit('Web-only und Netzwerk-Wiederaufnahme nicht kombinieren.')
+        stage=stage_payload()
+        subprocess.run(NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/install_browser_host.py'],check=True,env=child_env())
+        print('Nur lokale Web-Einrichtung: http://127.0.0.1:8787/setup. Bots und Serveraktionen bleiben gesperrt.');return
     if not os.isatty(0):raise SystemExit('Interaktiv mit docker compose -f compose.install.yaml run --rm --build installer starten.')
     print('Einmalige Host-Installation: systemd-Agenten, Docker-Bots/Web und HTTPS. Der Installer beendet sich danach.')
     address=os.environ.get('SERVER_ADDRESS') or input('Oeffentliche IPv4-Adresse dieses Servers: ').strip()

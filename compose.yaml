@@ -13,7 +13,7 @@ x-common: &common
     CREDENTIALS_DIRECTORY: /run/secrets
     PYTHONUNBUFFERED: '1'
     PYTHONDONTWRITEBYTECODE: '1'
-    DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?Run tools/configure.py first}
+    DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:-}
   tmpfs:
     - /tmp:rw,noexec,nosuid,size=16m,mode=1777
   logging:

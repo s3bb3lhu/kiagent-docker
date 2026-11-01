@@ -53,7 +53,7 @@ def main():
             if '.git' in relative.parts or '__pycache__' in relative.parts:continue
             if path.is_symlink():raise ValueError('Symlinks im Quellstand nicht erlaubt.')
             if path.is_file():replace(PROJECT/relative,path.read_bytes())
-        for name in ('config_broker.py','config_store.py','web_control.py','web_status.py','web_activity.py'):
+        for name in ('config_broker.py','config_store.py','web_control.py','web_status.py','web_activity.py','first_setup.py','runtime_start.py'):
             replace(library/name,(SOURCE/'host'/name).read_bytes())
         replace(library/'package_policy.py',(SOURCE/'src/app/package_policy.py').read_bytes())
         replace('/etc/systemd/system/kiagent-docker.service',(SOURCE/'host/systemd/kiagent-docker.service').read_bytes())
