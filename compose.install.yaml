@@ -23,7 +23,7 @@ services:
         source: /
         target: /host
         bind:
-          propagation: rprivate
+          propagation: rslave
           create_host_path: false
     environment:
       SERVER_ADDRESS: ${SERVER_ADDRESS:-}
