@@ -27,6 +27,12 @@ def main():
         actual=Path('/usr/local/lib/kiagent-config')/name;expected=PROJECT/'host'/name
         if actual.is_symlink() or actual.read_bytes()!=expected.read_bytes():raise SystemExit('Dienstcode weicht vom Projekt ab. Keine Aenderung.')
     idle();run(['/usr/bin/python3','-B',str(SOURCE/'tools/release_check.py')])
+    # Browser-only installations have not necessarily run the backup service yet.
+    for directory,mode in (('/var/lib/kiagent-backup',0o755),('/var/lib/kiagent-backup/work',0o700)):
+        path=Path(directory)
+        if not path.exists():path.mkdir(mode=mode)
+        info=path.lstat()
+        if path.is_symlink() or not path.is_dir() or info.st_uid!=0 or info.st_mode & 0o022 or mode==0o700 and info.st_mode & 0o077:raise ValueError('Unsafe backup directory')
     run(['/usr/bin/systemctl','start','kiagent-backup.service'])
     backup=Path('/var/backups/kiagent-ollama-'+str(time.time_ns()));backup.mkdir(mode=0o700)
     saved={}

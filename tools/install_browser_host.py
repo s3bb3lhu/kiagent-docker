@@ -82,7 +82,7 @@ def main():
     atomic(Path('/usr/local/lib/kiagent-config/package_policy.py'),(SOURCE/'src/app/package_policy.py').read_bytes())
     atomic(Path('/usr/local/lib/kiagent-heartbeat/kiagent_heartbeat.py'),(SOURCE/'host/heartbeat.py').read_bytes())
     atomic(Path('/usr/local/lib/kiagent-backup/backup.py'),(SOURCE/'host/backup.py').read_bytes())
-    for directory in ('/var/backups/kiagent-daily','/var/backups/kiagent-config','/var/lib/kiagent-config'):Path(directory).mkdir(mode=0o700,parents=True,exist_ok=True)
+    for directory in ('/var/backups/kiagent-daily','/var/backups/kiagent-config','/var/lib/kiagent-config','/var/lib/kiagent-backup','/var/lib/kiagent-backup/work'):Path(directory).mkdir(mode=0o700,parents=True,exist_ok=True)
     for path in (SOURCE/'host/systemd').iterdir():atomic(Path('/etc/systemd/system')/path.name,path.read_bytes())
     condition=b'[Unit]\nConditionPathExists=/etc/kiagent-docker/runtime-ready\n'
     for unit in ('kiagent-executor.service','kiagent-packages.service'):
