@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0.0 — 2026-11-01
+
+- Add an explicitly privileged, one-shot Compose installer for fixed Linux host agents and the full Telegram/Discord/web stack. No privileged runtime web or bot containers.
+- Refuse existing deployments, unsupported hosts, UID remapping and occupied ports before fresh installation.
+- Add trusted HTTPS access by public IPv4 and configurable port, default 8443; preserve port in Host/Origin checks and password reset.
+- Provide guarded network-only resume after a completed base installation.
+- Support local backups on non-RAID hosts while keeping required RAID files mandatory when RAID devices are configured.
+- Test bootstrap boundaries, custom HTTPS configuration and read-only host-namespace preflight; document the separate real-credential installation acceptance test.
+
 ## 1.0.0.1 — 2026-11-01
 
 - Quote tmpfs mount options in both portable Compose files so YAML preserves them as a single absolute mount specification.

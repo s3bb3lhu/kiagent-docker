@@ -16,8 +16,19 @@ SITE = Path('/etc/nginx/sites-available/kiagent-config')
 ENABLED = Path('/etc/nginx/sites-enabled/kiagent-config')
 CERTBOT = '/opt/kiagent-certbot/bin/certbot'
 
-def nginx_config(address,tls=False,setup_ip=None):
+def web_port(value):
+    value=int(value)
+    if value!=443 and not 1024<=value<=65535:raise ValueError('HTTPS-Port muss 443 oder 1024 bis 65535 sein.')
+    if value==8787:raise ValueError('Port 8787 bleibt fuer den lokalen Webdienst reserviert.')
+    return value
+
+def origin_for(address,port=443):
+    address=str(ipaddress.IPv4Address(address));port=web_port(port)
+    return 'https://'+address+(':'+str(port) if port!=443 else '')
+
+def nginx_config(address,tls=False,setup_ip=None,port=443):
     address=str(ipaddress.IPv4Address(address))
+    port=web_port(port)
     if setup_ip is not None:setup_ip=str(ipaddress.ip_address(setup_ip))
     text = MARKER+'''limit_req_zone $binary_remote_addr zone=kiagent_login:10m rate=5r/m;
 server {
@@ -75,6 +86,10 @@ server {
     }
     location / {
         proxy_pass''')
+    text=text.replace('listen 443 ssl default_server;','listen '+str(port)+' ssl default_server;')
+    authority=address+(':'+str(port) if port!=443 else '')
+    text=text.replace('return 308 https://'+address+'$request_uri;','return 308 '+origin_for(address,port)+'$request_uri;')
+    text=text.replace('proxy_set_header Host '+address+';','proxy_set_header Host '+authority+';')
     return text
 
 SERVICE = '''[Unit]
@@ -102,16 +117,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--address',required=True)
     parser.add_argument('--admin-ip')
+    parser.add_argument('--port',type=web_port,default=443)
     args = parser.parse_args()
     address = str(ipaddress.IPv4Address(args.address))
+    origin=origin_for(address,args.port)
     if not ipaddress.ip_address(address).is_global or os.geteuid()!=0:
         raise SystemExit('Mit sudo und der oeffentlichen IPv4-Adresse ausfuehren.')
     if SITE.exists() and not SITE.read_text().startswith(MARKER):
         raise SystemExit('Vorhandene nginx-Konfiguration wird nicht ueberschrieben.')
     if not SITE.exists():
         listeners = subprocess.check_output(['/usr/bin/ss','-H','-lnt'],text=True)
-        if any(line.split()[3].endswith((':80',':443')) for line in listeners.splitlines()):
-            raise SystemExit('Port 80/443 bereits belegt. Zuerst vorhandenen Webserver pruefen.')
+        if any(line.split()[3].endswith((':80',':'+str(args.port))) for line in listeners.splitlines()):
+            raise SystemExit('Port 80/'+str(args.port)+' bereits belegt. Zuerst vorhandenen Webserver pruefen.')
         ownership=Path('/var/lib/kiagent-https/address')
         own_retry=ownership.is_file() and not ownership.is_symlink() and ownership.stat().st_uid==0 and ownership.read_text().strip()==address
         if Path('/etc/nginx').exists() and not own_retry:
@@ -122,7 +139,7 @@ def main():
         data = json.loads(path.read_text())
         if data.get('state') not in {'success','rolled_back','failed','unchanged'} or data.get('code')=='rollback_failed':
             raise SystemExit('Offene Konfigurationsaenderung: zuerst per SSH pruefen.')
-    print('HTTPS fuer '+address+'. TCP-Port 80 und 443 muessen bei IONOS erreichbar sein.')
+    print('HTTPS fuer '+origin+'. TCP-Port 80 und '+str(args.port)+' muessen erreichbar sein.')
     print('Zertifikate werden bei Let\'s Encrypt angefordert und automatisch erneuert.')
     print('Nutzungsbedingungen: https://letsencrypt.org/repository/')
     if input('Diesen Bedingungen zustimmen und HTTPS einrichten? JA eingeben: ').strip()!='JA':
@@ -160,7 +177,7 @@ def main():
             default.unlink()
         root=Path('/var/lib/kiagent-acme')
         root.mkdir(mode=0o755,exist_ok=True)
-        replace(SITE,nginx_config(address).encode())
+        replace(SITE,nginx_config(address,port=args.port).encode())
         if not ENABLED.exists():
             ENABLED.symlink_to(SITE)
         elif not ENABLED.is_symlink() or ENABLED.resolve()!=SITE:
@@ -187,7 +204,7 @@ def main():
         run(['/usr/bin/systemctl','daemon-reload'])
         env_path=CONFIG/'deployment.env'
         env=dict(line.split('=',1) for line in env_path.read_text().splitlines() if line and not line.startswith('#'))
-        env['CONFIG_ORIGIN']='https://'+address
+        env['CONFIG_ORIGIN']=origin
         admin_ip=args.admin_ip or env.get('CONFIG_SETUP_ALLOWED_IP') or os.environ.get('SSH_CONNECTION','').split(' ')[0]
         if not admin_ip or admin_ip=='127.0.0.1':
             admin_ip=input('Oeffentliche IP deines PCs fuer die Passwort-Ersteinrichtung: ').strip()
@@ -195,14 +212,14 @@ def main():
         replace(env_path,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
         changed=True
         run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'])
-        replace(SITE,nginx_config(address,True,env.get('CONFIG_SETUP_ALLOWED_IP')).encode())
+        replace(SITE,nginx_config(address,True,env.get('CONFIG_SETUP_ALLOWED_IP'),port=args.port).encode())
         run(['/usr/sbin/nginx','-t'])
         run(['/usr/bin/systemctl','reload','nginx.service'])
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
-        with opener.open('https://'+address+'/health',timeout=20) as response:
+        with opener.open(origin+'/health',timeout=20) as response:
             if json.load(response).get('ok') is not True:
                 raise ValueError('HTTPS-Status nicht bereit.')
-        with opener.open('https://'+address+'/login',timeout=20) as response:
+        with opener.open(origin+'/login',timeout=20) as response:
             if 'Secure' not in response.headers.get('Set-Cookie','') or 'name="password"' not in response.read().decode():
                 raise ValueError('Sichere Anmeldung nicht bereit.')
         replace('/etc/systemd/system/kiagent-certbot.service',SERVICE.encode())
@@ -233,7 +250,7 @@ def main():
         if changed:
             subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'])
         raise
-    report={'result':'success','origin':'https://'+address,'certificate_verified':True,'renewal_tested':True,
+    report={'result':'success','origin':origin,'port':args.port,'certificate_verified':True,'renewal_tested':True,
             'backup':str(backup),'bot_tokens_changed':False,'checked_utc':datetime.now(timezone.utc).isoformat()}
     owner=pwd.getpwnam(os.environ.get('SUDO_USER','root'))
     if owner.pw_uid!=0:

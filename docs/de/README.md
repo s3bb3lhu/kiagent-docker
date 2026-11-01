@@ -1,4 +1,4 @@
-# Dokumentation · 1.0.0.1
+# Dokumentation · 1.1.0.0
 
 ## Installation & Einstieg
 

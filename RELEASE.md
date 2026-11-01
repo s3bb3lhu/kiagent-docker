@@ -1,4 +1,4 @@
-# Release — 1.0.0.1
+# Release — 1.1.0.0
 
 The repository is the source distribution. Start with [COMPOSE.md](COMPOSE.md). Never distribute a live host export, `/etc/kiagent-docker`, Docker volumes, SSH keys, auth files, databases, logs or backup archives. Users supply their own service credentials.
 
@@ -30,4 +30,4 @@ The authenticated portal includes **Settings → Documentation**. Repository cop
 - Confirm the supported-platform limitations in README and DISTRIBUTION.
 - Create the intended GitHub release/tag only from that final verified commit, using the changelog as release notes.
 
-The public release is published from a verified commit as tag `v1.0.0.1`. Images are built locally from source; no container registry publishing is implied. The running managed server is independent of the publication step.
+The public release is published from a verified commit as tag `v1.1.0.0`. Images are built locally from source; no container registry publishing is implied. The running managed server is independent of the publication step.

@@ -1,10 +1,20 @@
 # Serversteuerung / Server Control — Kiagent Docker
 
-**Version 1.0.0.1** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.0.0.1)
+**Version 1.1.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.1.0.0)
 
 Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md). In der angemeldeten Oberfläche: **Einstellungen → Dokumentation**. Veröffentlichungsstand und Grenzen: [RELEASE.md](RELEASE.md) und [CHANGELOG.md](CHANGELOG.md).
 
 Selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Sie werden bei der Installation lokal eingegeben.
+
+## Vollständig per Compose installieren und starten
+
+Die neue [Vollinstallations-Anleitung](FULL_COMPOSE.md) richtet mit einem einmaligen Compose-Installer Telegram, Discord, Web und die begrenzten Host-Agenten ein. Standardzugang danach: **https://DEINE-SERVER-IP:8443**; der Port ist wählbar. Unterstützt werden frische Ubuntu-24.04-/26.04-amd64-Hosts mit systemd und regulärem Docker.
+
+```bash
+docker compose -f compose.install.yaml run --rm --build installer
+```
+
+Dieser ausdrücklich privilegierte Einmal-Installer benötigt Hostzugriff und fragt Zugangsdaten im eigenen Terminal ab. Er wird anschließend entfernt; die laufenden Bots/Webcontainer bleiben ohne diese Rechte. Bestehende Installationen werden nicht überschrieben. Für Zertifikate muss TCP 80 sowie der gewählte Web-Port erreichbar sein. Details und Wiederaufnahme: [FULL_COMPOSE.md](FULL_COMPOSE.md).
 
 ## Was enthalten ist
 

@@ -1,0 +1,33 @@
+# Explicitly authorized one-time host installer, removed with `run --rm`.
+# Runtime bots and web do not receive these host privileges.
+name: server-control-install
+services:
+  installer:
+    profiles: [install]
+    build:
+      context: .
+      dockerfile: Dockerfile.installer
+    image: server-control-installer:1.1.0.0
+    platform: linux/amd64
+    privileged: true
+    pid: host
+    user: '0:0'
+    restart: 'no'
+    stdin_open: true
+    tty: true
+    read_only: true
+    tmpfs:
+      - '/tmp:rw,noexec,nosuid,size=32m,mode=1777'
+    volumes:
+      - type: bind
+        source: /
+        target: /host
+        bind:
+          propagation: rprivate
+          create_host_path: false
+    environment:
+      SERVER_ADDRESS: ${SERVER_ADDRESS:-}
+      SERVER_ADMIN_IP: ${SERVER_ADMIN_IP:-}
+      SERVER_WEB_PORT: ${SERVER_WEB_PORT:-8443}
+    logging:
+      driver: none

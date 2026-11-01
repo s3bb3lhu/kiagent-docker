@@ -12,7 +12,7 @@ from release_version import VERSION
 def main():
     assert re.fullmatch(r'\d+\.\d+\.\d+\.\d+',VERSION)
     assert (ROOT/'VERSION').read_text().strip()==VERSION
-    for name in ('Dockerfile','Dockerfile.portable'):
+    for name in ('Dockerfile','Dockerfile.portable','Dockerfile.installer'):
         assert 'org.opencontainers.image.version="'+VERSION+'"' in (ROOT/name).read_text()
     for path in ROOT.rglob('*.py'):
         if '.git' not in path.parts:ast.parse(path.read_text(encoding='utf-8'),filename=str(path.relative_to(ROOT)))

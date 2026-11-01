@@ -29,8 +29,8 @@ STATUS=STATE/'status.json'
 DATABASE=Path('/var/lib/kiagent-executor/history.sqlite3')
 DIRECTORIES=(Path('/opt/kiagent-docker/project/src/app'),Path('/opt/kiagent/executor'),
              Path('/etc/kiagent-docker'),Path('/usr/local/lib/kiagent-heartbeat'),Path('/usr/local/lib/kiagent-config'))
-REQUIRED_FILES=(Path('/etc/mdadm/mdadm.conf'),Path('/usr/local/sbin/kiagent-mdadm-alert'),
-                Path('/opt/kiagent-docker/project/compose.yaml'),Path('/opt/kiagent-docker/project/requirements.lock'),Path('/opt/kiagent-docker/project/Dockerfile'),Path('/etc/os-release'),
+OPTIONAL_RAID_FILES=(Path('/etc/mdadm/mdadm.conf'),Path('/usr/local/sbin/kiagent-mdadm-alert'))
+REQUIRED_FILES=(Path('/opt/kiagent-docker/project/compose.yaml'),Path('/opt/kiagent-docker/project/requirements.lock'),Path('/opt/kiagent-docker/project/Dockerfile'),Path('/etc/os-release'),
                 Path('/usr/local/lib/kiagent-backup/backup.py'))
 MAX_FILE=32*1024*1024
 MAX_TOTAL=256*1024*1024
@@ -106,6 +106,10 @@ def sources():
         # os-release is commonly an OS-managed symlink. Store its resolved file
         # contents at the conventional name, with the real source in the manifest.
         selected.add(path.resolve(strict=True) if path==Path('/etc/os-release') else path)
+    raid_env=Path('/etc/kiagent-docker/deployment.env').read_text()
+    raid_required=any(line.startswith('KIAGENT_RAID_DEVICES=') and line.split('=',1)[1].strip() for line in raid_env.splitlines())
+    for path in OPTIONAL_RAID_FILES:
+        if path.exists() or raid_required:selected.add(path)
     for path in (Path('/etc/nginx/sites-available/kiagent-config'),Path('/etc/letsencrypt/cli.ini')):
         if path.exists():selected.add(path)
     systemd=Path('/etc/systemd/system')

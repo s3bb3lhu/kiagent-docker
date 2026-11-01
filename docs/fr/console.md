@@ -1,6 +1,6 @@
 # Console SSH : lire l’activité
 
-Fonctions et commandes · 1.0.0.1
+Fonctions et commandes · 1.1.0.0
 
 1. La console SSH est une vue d’activité en lecture seule, pas un shell interactif. Elle affiche les phases de l’IA depuis le dernier redémarrage du bot et les tâches récentes. Questions, réponses et tokens sont exclus.
 

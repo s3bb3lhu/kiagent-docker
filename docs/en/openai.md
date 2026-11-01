@@ -1,6 +1,6 @@
 # OpenAI: API key and AI
 
-Settings and connections · 1.0.0.1
+Settings and connections · 1.1.0.0
 
 1. Open the API keys page, choose your project and create a new secret key. Enter it directly in Settings → OpenAI. Check your API project’s permissions, model access and billing. Never send credentials in chat.
 

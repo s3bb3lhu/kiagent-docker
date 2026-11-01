@@ -2,7 +2,7 @@
 
 Die angemeldete Oberfläche hat die Bereiche Status, Steuerung, SSH Console und Einstellungen. Das Menü lässt sich einklappen. API-Schlüssel werden je Dienst auf einer eigenen Einstellungsseite verwaltet; dort liegt auch die Passwortänderung. Über die Sprachauswahl unten links stehen Deutsch, Englisch, Spanisch und Französisch zur Verfügung. Ruby Control und Crimson Glass gibt es in Rot, Blau, Grün, Lila und Anthrazit, jeweils mit Tag-/Nachtmodus. Design, Farbe, Modus, Menü und Sprache werden für diesen Browser gespeichert. Zahlen, Datumsangaben, Meldungen und Bestätigungen folgen der gewählten Sprache. Technische Kennungen wie `/automatik_an`, Paketnamen, Schnittstellen und Dateisystempfade bleiben unverändert.
 
-Unter Einstellungen → Dokumentation stehen Anleitungen nach Installation, Einstellungen, Funktionen und Betrieb. Dieselben Inhalte liegen in vier Sprachen unter `docs/`. Die Version wird unten im Menü angezeigt; die aktuelle Veröffentlichung ist `1.0.0.1`. Die gewählte Wort-/Bildmarke C verbindet ein S-Symbol mit einem übersetzten Schriftzug; Symbol und Akzent folgen der Farbwahl.
+Unter Einstellungen → Dokumentation stehen Anleitungen nach Installation, Einstellungen, Funktionen und Betrieb. Dieselben Inhalte liegen in vier Sprachen unter `docs/`. Die Version wird unten im Menü angezeigt; die aktuelle Veröffentlichung ist `1.1.0.0`. Die gewählte Wort-/Bildmarke C verbindet ein S-Symbol mit einem übersetzten Schriftzug; Symbol und Akzent folgen der Farbwahl.
 
 Der Kopfbereich zeigt lokale Zeit und separat die vom Host gelieferte Serverzeit mit Zeitzone. Bei ausbleibenden Antworten wird die Serveruhr nach 45 Sekunden als nicht verfügbar markiert. Der Status zeigt alle logischen CPU-Kerne; die Auslastung benötigt jeweils zwei Messungen.
 

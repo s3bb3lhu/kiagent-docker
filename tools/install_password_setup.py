@@ -76,7 +76,7 @@ def main():
         run(['/usr/bin/systemctl','daemon-reload'])
         env.update(CONFIG_SETUP_ALLOWED_IP=admin_ip,CONFIG_SETUP_PROXY='1',CONFIG_SETUP_LOCAL_ONLY='0')
         replace(env_path,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
-        replace(SITE,nginx_config(address,True,admin_ip).encode())
+        replace(SITE,nginx_config(address,True,admin_ip,port=urlsplit(origin).port or 443).encode())
         run(['/usr/sbin/nginx','-t'])
         run(['/usr/bin/systemctl','reload','nginx.service'])
         run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'])

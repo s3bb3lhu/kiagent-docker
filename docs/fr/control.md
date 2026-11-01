@@ -1,6 +1,6 @@
 # Commandes et redémarrage serveur
 
-Fonctions et commandes · 1.0.0.1
+Fonctions et commandes · 1.1.0.0
 
 1. Telegram : /status, /ram, /disk, /uptime et /diagnose lisent l’état ou préparent un diagnostic IA. /ki répond ou planifie des installations. Discord propose /status, /ki, /ki_install, /ki_install_status et les commandes d’automatisation. Les deux bots n’ont pas exactement les mêmes commandes.
 
