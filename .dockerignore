@@ -16,6 +16,7 @@
 !Dockerfile.installer
 !compose*.yaml
 !VERSION
+!installer-manifest.json
 !README.md
 !CHANGELOG.md
 !COMPOSE.md

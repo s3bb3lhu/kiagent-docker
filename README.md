@@ -16,7 +16,7 @@ cd kiagent-docker
 docker compose up -d
 ```
 
-Der neue Standardweg liegt auf `main` und aktualisiert keine bestehende Installation. Er prüft vorhandene IP-Zertifikate, übernimmt ein gültiges Zertifikat lesend oder stellt auf einem freien Server automatisch eines aus. Die Netzwerkadressen werden erkannt; Passwort und Dienstzugänge werden danach ausschließlich im Browser eingerichtet.
+Der Installationshelfer liegt auf `main` und lädt für jede Neuinstallation den neuesten veröffentlichten stabilen GitHub-Release. Vorabversionen und unveröffentlichter Anwendungscode werden nicht installiert. Auch ein lokal älteres Installer-Image greift auf den aktuellen Stable-Release zu; ist dieser nicht sicher abrufbar, wird ohne Rückfall auf alte Dateien abgebrochen. Bestehende Installationen werden nicht aktualisiert. Er prüft vorhandene IP-Zertifikate, übernimmt ein gültiges Zertifikat lesend oder stellt auf einem freien Server automatisch eines aus. Die Netzwerkadressen werden erkannt; Passwort und Dienstzugänge werden danach ausschließlich im Browser eingerichtet.
 
 Die fertige HTTPS-Adresse steht automatisch in **`.installation/WEBADRESSE.txt`** sowie im Protokoll von `setup`. Optional: `docker compose logs -f setup`. Docker selbst blendet mit `-d` spätere Anwendungsausgaben aus. Der beendete Setup-Container mit Exitcode 0 ist normal. Vorhandene Dienste bleiben unverändert; ohne freie Zertifikatsausstellungsmöglichkeit wird geschützt abgebrochen.
 

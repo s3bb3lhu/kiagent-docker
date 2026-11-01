@@ -15,7 +15,7 @@ GitHub Actions runs the isolated builds and tests using fixture credentials. It 
 
 ## Product version
 
-`src/app/release_version.py` is the application value. `VERSION`, the OCI version labels and generated manual must agree. Versions use four numeric components as requested, starting at **1.0.0.0**. No automatic increments or update execution are provided.
+`src/app/release_version.py` is the application value. Future stable source releases must include `installer-manifest.json` with kind `server-control-first-install`, protocol `1`, and the exact application version. The default first installer resolves GitHub’s latest non-draft, non-prerelease release and pins its tag to a commit before download; an unreachable or incompatible latest release never falls back to baked source. `VERSION`, the OCI version labels and generated manual must agree. Versions use four numeric components as requested, starting at **1.0.0.0**. No automatic increments or update execution are provided.
 
 ## Manual
 

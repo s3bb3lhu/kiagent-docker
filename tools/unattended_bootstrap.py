@@ -49,7 +49,7 @@ def ready_url():
     if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:raise ValueError('Ungueltiger Webzugang.')
     return origin+'/setup'
 
-def run(probe,stage_payload,namespace,child_env):
+def run(probe,stage_payload,namespace,child_env,select_source=None):
     protected_directory(RESULT)
     lock=os.open(RESULT/'install.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
     try:
@@ -59,6 +59,7 @@ def run(probe,stage_payload,namespace,child_env):
         if not re.fullmatch('[0-9a-f]{64}',owner):raise ValueError('Ungueltige Installationskennung.')
         if not owner_path.exists():write(owner_path,owner)
         status('installing')
+        source_info=None
         facts=probe()
         if facts['installed'] or facts['configured']:
             if not matches(owner):raise ValueError('Andere oder bisherige Installation erkannt. Kein Update und kein Ueberschreiben.')
@@ -72,12 +73,21 @@ def run(probe,stage_payload,namespace,child_env):
                 subprocess.run(namespace+['/usr/bin/systemctl','start','kiagent-config.service','kiagent-docker.service'],check=True,env=child_env())
             print('Vorhandene eigene Installation gestartet; keine Dateien aktualisiert.',flush=True)
         else:
-            stage=stage_payload()
-            command=namespace+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--install-owner',owner,'--port',os.environ.get('SERVER_WEB_PORT','8443')]
-            connection=os.environ.get('INSTALL_SSH_CONNECTION','')
-            if connection:command+=['--ssh-connection',connection]
-            subprocess.run(command,check=True,env=child_env())
-        url=ready_url();status('ready',url)
+            if select_source is None:
+                from latest_release import source
+                select_source=source
+            print('Ermittle den neuesten veroeffentlichten Stable-Release direkt von GitHub.',flush=True)
+            with select_source() as release:
+                source_info=release['metadata']
+                print('Installiere aktuellen Stable-Release '+source_info['tag']+' ('+source_info['commit']+').',flush=True)
+                stage=stage_payload(payload=release['path'])
+                command=namespace+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--install-owner',owner,'--port',os.environ.get('SERVER_WEB_PORT','8443')]
+                connection=os.environ.get('INSTALL_SSH_CONNECTION','')
+                if connection:command+=['--ssh-connection',connection]
+                subprocess.run(command,check=True,env=child_env())
+        url=ready_url()
+        if source_info:write(RESULT/'version.json',json.dumps(source_info,sort_keys=True)+'\n',0o644)
+        status('ready',url)
         print('\nWEBADRESSE: '+url+'\nPasswort und alle Dienstzugriffe ausschliesslich dort einrichten.\nKein Update bestehender Installationen ausgefuehrt.',flush=True)
     except BaseException:
         status('failed')

@@ -44,6 +44,9 @@ def main():
         result=json.loads((ROOT/'.installation/status.json').read_text());assert result['state']=='ready'
         assert result['url']=='https://8.8.8.8:9443/setup',result
         assert (ROOT/'.installation/WEBADRESSE.txt').read_text().strip()==result['url']
+        version=json.loads((ROOT/'.installation/version.json').read_text())
+        assert version['channel']=='stable' and version['version']==Path('/opt/kiagent-docker/project/VERSION').read_text().strip()
+        assert version==json.loads(Path('/opt/kiagent-docker/project/release-source.json').read_text())
         assert (Path('/etc/kiagent-docker/first-install-owner').read_text())==(ROOT/'.installation/owner').read_text()
         for name in ('telegram-token','discord-token','openai-api-key','hc-bot','hc-server'):
             assert not (Path('/etc/kiagent-docker/secrets')/name).read_bytes().strip()
@@ -53,11 +56,11 @@ def main():
                 connection.sendall(b'GET /health HTTP/1.1\r\nHost: 8.8.8.8:9443\r\nConnection: close\r\n\r\n')
                 response=connection.makefile('rb').read()
         assert b'200 OK' in response and b'"ok":true' in response
-        paths=[Path('/opt/kiagent-docker/project/compose.yaml'),Path('/etc/kiagent-docker/deployment.env'),cert,key]
+        paths=[Path('/opt/kiagent-docker/project/compose.yaml'),Path('/etc/kiagent-docker/deployment.env'),ROOT/'.installation/version.json',cert,key]
         before=[hashlib.sha256(path.read_bytes()).digest() for path in paths]
         run('docker','compose','up','-d',env=environment,timeout=60);wait_setup()
         assert before==[hashlib.sha256(path.read_bytes()).digest() for path in paths]
-        print('Plain docker compose up -d: first installation, trusted TLS, URL file, empty provider keys, repeat without update: OK')
+        print('Plain docker compose up -d: latest published stable release, trusted TLS, URL/version files, empty provider keys, repeat without update: OK')
     finally:
         subprocess.run(['systemctl','disable','--now','kiagent-docker','kiagent-config','kiagent-executor','kiagent-packages','kiagent-tls-sync.timer'],capture_output=True,timeout=120)
         subprocess.run(['docker','compose','down'],cwd=ROOT,capture_output=True,timeout=60)

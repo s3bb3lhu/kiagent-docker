@@ -1,5 +1,13 @@
 # Changelog
 
+## Stable-Auswahl bei Neuinstallationen — ohne Bestandsupdate
+
+- Resolve the latest published stable GitHub release on every fresh install, pin its commit, validate and safely unpack the source archive.
+- Reject prereleases, incompatible protocols, unsafe archives and offline fallback to old bundled application files.
+- Record installed release metadata; retain no-update behavior for existing or resumed installs.
+- Add bounded compatibility for the immutable 1.3.0.1 source release without altering its application files.
+
+
 ## Erstinstallationsweg auf main — ohne Versions-/Bestandsupdate
 
 - Default `docker compose up -d` performs first installation and saves the HTTPS URL to a local result file and setup logs.

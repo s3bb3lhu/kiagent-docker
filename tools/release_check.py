@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline release checks, no credentials, deployment, GitHub writes or live actions."""
 import ast
+import json
 import re
 import subprocess
 import sys
@@ -12,6 +13,8 @@ from release_version import VERSION
 def main():
     assert re.fullmatch(r'\d+\.\d+\.\d+\.\d+',VERSION)
     assert (ROOT/'VERSION').read_text().strip()==VERSION
+    if (ROOT/'installer-manifest.json').exists():
+        assert json.loads((ROOT/'installer-manifest.json').read_text())=={'kind':'server-control-first-install','protocol':1,'version':VERSION}
     for name in ('Dockerfile','Dockerfile.portable','Dockerfile.installer'):
         assert 'org.opencontainers.image.version="'+VERSION+'"' in (ROOT/name).read_text()
     for path in ROOT.rglob('*.py'):

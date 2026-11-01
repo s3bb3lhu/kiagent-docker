@@ -1,6 +1,6 @@
 # Erstinstallation mit einem Compose-Befehl
 
-Dieser Weg ist eine neue **Erstinstallation**, kein Update. Die Anwendungs-Version bleibt unverändert. Bereits veröffentlichte Release-Tags und laufende Installationen werden nicht geändert. Die folgende Standard-Compose liegt auf dem aktuellen `main`-Zweig.
+Dieser Weg ist eine neue **Erstinstallation**, kein Update. Neuinstallationen verwenden immer den neuesten veröffentlichten stabilen GitHub-Release. Bestehende Installationen bleiben unverändert. Bereits veröffentlichte Release-Tags und laufende Installationen werden nicht geändert. Die folgende Standard-Compose liegt auf dem aktuellen `main`-Zweig.
 
 ## Start
 
@@ -15,6 +15,16 @@ docker compose up -d
 ```
 
 Bei fehlenden Docker-Berechtigungen den letzten Befehl mit `sudo` ausführen. Es werden keine IP-Adressen, Passwörter, API-Keys oder Tokens abgefragt. Server- und Administrator-Adresse werden automatisch erkannt. Bei uneindeutiger SSH-Zuordnung oder nicht unterstütztem NAT wird geschützt abgebrochen.
+
+## Immer der aktuelle stabile Release
+
+Der heruntergeladene `main`-Stand enthält den Installationshelfer. Die zu installierende Anwendung wird erst beim Start einer **neuen** Installation über GitHubs `releases/latest` ermittelt. Entwurfs- und Vorabversionen werden abgewiesen. Der Release-Tag wird zu einem konkreten Commit aufgelöst und genau dessen Quellarchiv heruntergeladen; Versionsnummer, Installationsprotokoll und Archivstruktur werden geprüft.
+
+Damit bestimmt weder ein alter Checkout noch das lokal zwischengespeicherte Installer-Image die Anwendungsversion. Es gibt keinen stillen Rückfall auf den mitgelieferten alten Programmstand. Sind GitHub oder der aktuelle passende Stable-Release nicht abrufbar, wird vor der Hostinstallation abgebrochen. Nach erfolgreicher Installation stehen Version, Tag und Commit zusätzlich in **`.installation/version.json`** sowie im installierten `release-source.json`.
+
+Der bereits veröffentlichte Release 1.3.0.1 liegt vor Einführung dieses Erstinstallationsprotokolls. Für genau dessen unveränderlichen Commit passt der Starter drei Installationshelfer an und ergänzt die Laufzeitvorlage. Die Anwendungsdateien und Abhängigkeiten bleiben aus dem stabilen Release; die angepassten Helfer werden mit Prüfsummen protokolliert. Andere alte oder unbekannte Releases werden nicht ungeprüft angepasst. Künftige Releases liefern `installer-manifest.json` mit Protokoll 1 und passender Version selbst mit.
+
+Eine gestartete oder teilweise eingerichtete Installation bleibt an ihren ausgewählten Stand gebunden. Wiederanlauf oder Fortsetzung führt kein Versionsupdate aus; eine neuere Stable-Veröffentlichung ersetzt keine bereits installierten Dateien.
 
 ## Webadresse und Einrichtung
 

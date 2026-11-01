@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from contextlib import nullcontext
 import unittest
 from pathlib import Path
 from unittest.mock import Mock,patch
@@ -21,9 +22,10 @@ class UnattendedTests(unittest.TestCase):
         (self.config/'first-install-owner').write_text(self.owner)
         self.record={'kind':'compose-host-install-v1','network_ready':True,'origin':'https://8.8.8.8:9443'}
         self.marker=self.config/'compose-install.json';self.marker.write_text(json.dumps(self.record))
+        self.select=Mock(return_value=nullcontext({'path':ROOT,'metadata':{'channel':'stable','version':'9.8.7.6','tag':'v9.8.7.6','commit':'a'*40}}))
 
     def call(self,facts,stage=None):
-        return boot.run(lambda:facts,stage or Mock(return_value='/staged'),['namespace'],lambda:{})
+        return boot.run(lambda:facts,stage or Mock(return_value='/staged'),['namespace'],lambda:{},select_source=self.select)
 
     def test_fresh_install_records_url_and_requires_no_input(self):
         with patch.object(boot.subprocess,'run') as execute,patch('builtins.input',side_effect=AssertionError('No questions')):
@@ -31,6 +33,7 @@ class UnattendedTests(unittest.TestCase):
             self.assertIn('--install-owner',execute.call_args.args[0])
             self.assertEqual(json.loads((self.result/'status.json').read_text())['state'],'ready')
             self.assertEqual((self.result/'WEBADRESSE.txt').read_text().strip(),'https://8.8.8.8:9443/setup')
+            self.assertEqual(json.loads((self.result/'version.json').read_text())['version'],'9.8.7.6')
 
     def test_existing_own_install_is_started_without_staging_or_update(self):
         stage=Mock(side_effect=AssertionError('No code replacement'))
@@ -39,6 +42,7 @@ class UnattendedTests(unittest.TestCase):
             self.call({'installed':True,'configured':True},stage)
             self.assertIn('start',execute.call_args.args[0]);stage.assert_not_called()
             self.assertEqual(before,self.marker.read_bytes())
+            self.select.assert_not_called()
 
     def test_another_install_is_never_started_or_updated(self):
         (self.config/'first-install-owner').write_text('b'*64)
@@ -55,6 +59,15 @@ class UnattendedTests(unittest.TestCase):
             self.call({'installed':True,'configured':True},stage)
             self.assertIn('/opt/kiagent-docker/project/tools/host_compose_install.py',execute.call_args.args[0])
             self.assertIn('--resume-network',execute.call_args.args[0]);stage.assert_not_called()
+            self.select.assert_not_called()
+
+    def test_release_lookup_failure_never_uses_baked_source(self):
+        self.select.side_effect=OSError('fixture network failure')
+        stage=Mock()
+        with patch.object(boot.subprocess,'run') as execute:
+            with self.assertRaises(OSError):self.call({'installed':False,'configured':False},stage)
+            execute.assert_not_called();stage.assert_not_called()
+            self.assertEqual(json.loads((self.result/'status.json').read_text())['state'],'failed')
 
     def test_default_compose_is_a_one_shot_without_runtime_secrets(self):
         text=(ROOT/'compose.yaml').read_text()
