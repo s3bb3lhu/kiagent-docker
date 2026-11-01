@@ -1,9 +1,9 @@
-# Docker Compose — 1.0.0.0
+# Docker Compose — 1.0.0.1
 
 ## Einfacher Portalstart / Portable portal
 
 ```bash
-git clone --branch v1.0.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git
+git clone --branch v1.0.0.1 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git
 cd kiagent-docker
 docker compose -f compose.quickstart.yaml up -d --build --wait
 ```
@@ -21,6 +21,10 @@ docker compose -f compose.quickstart.yaml down
 ```
 
 `down` ohne `--volumes` erhält die Konfiguration. `down` without `--volumes` preserves configuration. Do not run a second stack against an already occupied port 8787.
+
+**Die Dateiangabe `-f compose.quickstart.yaml` bei jedem Portal-Befehl beibehalten.** Ein einfaches `docker compose down` wählt automatisch die ebenfalls vorhandene `compose.yaml` für den vollständigen Host-Stack und meldet dann fehlende `KIAGENT_*`-/Discord-Einstellungen. Diese sind für den Portaltest nicht erforderlich.
+
+**Keep `-f compose.quickstart.yaml` on every portal command.** Plain `docker compose down` selects the full host stack in `compose.yaml` and reports missing `KIAGENT_*`/Discord settings. The portal test does not require those settings.
 
 ## Vollständige Linux-Steuerung / Full Linux control
 

@@ -1,8 +1,8 @@
 # Actualizaciones, versión y solución de problemas
 
-Operación y mantenimiento · 1.0.0.0
+Operación y mantenimiento · 1.0.0.1
 
-1. La versión aparece abajo en el menú. Esta primera publicación tiene la versión 1.0.0.0. Las actualizaciones se instalan explícitamente desde código revisado; no hay autoactualización desatendida. Revisa tareas abiertas/inciertas y respaldos antes.
+1. La versión aparece abajo en el menú. La publicación actual tiene la versión 1.0.0.1. Las actualizaciones se instalan explícitamente desde código revisado; no hay autoactualización desatendida. Revisa tareas abiertas/inciertas y respaldos antes.
 
 2. En una instalación administrada existente ejecuta tools/install_ui.py desde el código preparado con sudo. Prueba aisladamente, respalda código/imágenes y comprueba reinicio. Conserva credenciales, contraseña, historial y bloqueos. Recarga con Ctrl+F5.
 

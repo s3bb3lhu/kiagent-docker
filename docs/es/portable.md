@@ -1,6 +1,6 @@
 # Docker en Linux y Windows
 
-Instalación y primeros pasos · 1.0.0.0
+Instalación y primeros pasos · 1.0.0.1
 
 1. La variante portable necesita contenedores Linux. Windows Server requiere una VM Linux con Docker Engine; no hay contenedores Windows nativos ni acciones sobre Windows. Un PC Windows necesita un entorno de contenedores Linux compatible con el fabricante.
 

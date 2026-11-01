@@ -1,6 +1,6 @@
 # Steuerbefehle & Server-Neustart
 
-Funktionen & Steuerung · 1.0.0.0
+Funktionen & Steuerung · 1.0.0.1
 
 1. Telegram: /status, /ram, /disk, /uptime und /diagnose lesen Status beziehungsweise erstellen eine KI-Diagnose. /ki beantwortet Fragen oder plant Installationen. Discord stellt /status, /ki, /ki_install, /ki_install_status und die Automatikbefehle bereit. Die Bots bieten nicht exakt denselben Befehlsumfang.
 

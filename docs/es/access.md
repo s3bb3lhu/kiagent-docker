@@ -1,6 +1,6 @@
 # Acceso, contraseña y HTTPS
 
-Ajustes y conexiones · 1.0.0.0
+Ajustes y conexiones · 1.0.0.1
 
 1. Abre /setup al configurar por primera vez. No hay contraseña predeterminada ni código. Usa al menos 8 caracteres con mayúscula, número y símbolo, sin espacios. La configuración inicial por HTTPS público se limita a la IP del administrador.
 

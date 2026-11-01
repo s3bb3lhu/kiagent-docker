@@ -1,6 +1,6 @@
 # Sicherungen & Wiederherstellung
 
-Betrieb & Wartung · 1.0.0.0
+Betrieb & Wartung · 1.0.0.1
 
 1. Die verwaltete Linux-Installation sichert täglich um 03:15 Europe/Berlin nach /var/backups/kiagent-daily. Archive enthalten private Zugangsdaten und einen konsistenten SQLite-Snapshot und sind nur für root lesbar. Es gibt keine automatische Löschung alter Archive; freien Platz überwachen.
 

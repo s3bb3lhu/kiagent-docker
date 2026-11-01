@@ -1,6 +1,6 @@
 # Healthchecks : signaux de vie et alertes
 
-Paramètres et connexions · 1.0.0.0
+Paramètres et connexions · 1.0.0.1
 
 1. Créez des checks distincts pour le serveur et le bot dans Healthchecks. Copiez leurs URL de ping UUID et affectez-les dans Paramètres → Healthchecks. Des URL de ping sont requises, pas une clé API de gestion.
 

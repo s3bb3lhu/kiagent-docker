@@ -1,6 +1,6 @@
 # Consola SSH: consultar actividad
 
-Funciones y control · 1.0.0.0
+Funciones y control · 1.0.0.1
 
 1. La consola SSH es una vista de actividad de solo lectura, no un terminal interactivo. Muestra fases de IA desde el último reinicio del bot y tareas recientes. Excluye preguntas, respuestas y tokens.
 

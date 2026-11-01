@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0.1 — 2026-11-01
+
+- Quote tmpfs mount options in both portable Compose files so YAML preserves them as a single absolute mount specification.
+- Fix startup failure: `invalid mount path: mode=1777`.
+- Smoke-test actual Compose startup, first setup and restart for both portable files with isolated temporary networks/volumes.
+- Keep application version, image labels, quickstart instructions and all four localized manuals consistent.
+- Preserve the original v1.0.0.0 tag; new installations should use v1.0.0.1.
+
 ## 1.0.0.0 — 2026-11-01
 
 First release of the self-hosted Server Control dashboard and the existing Kiagent host adapters.
