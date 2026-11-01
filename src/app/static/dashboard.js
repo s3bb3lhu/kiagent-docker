@@ -58,3 +58,12 @@ async function activity(){if(page!=='console'||activityBusy||document.hidden)ret
 if(page==='console'){activity();setInterval(activity,3000);}
 
 function setupBanner(required){const banner=document.querySelector('#setup-banner');if(banner)banner.hidden=!required;}
+
+const aiForm=document.querySelector('#ai-form');
+if(aiForm){
+ const provider=document.querySelector('#ai-provider'),model=document.querySelector('#ai-model'),save=document.querySelector('#ai-save');
+ async function loadAI(){save.disabled=true;try{const data=await api('/api/ai');provider.value=data.provider||'openai';model.replaceChildren();for(const name of data.models||[]){const option=document.createElement('option');option.value=name;option.textContent=name;model.append(option);}if(data.model)model.value=data.model;document.querySelector('#ai-state').textContent='Ollama: '+t(data.ready?'ai_ready':'ai_unavailable');document.querySelector('#ai-mode').textContent=t(data.note||'ai_unavailable');const limits=data.limits||{};document.querySelector('#ai-limits').textContent=data.managed?t('ai_resource_limits').replace('{cpu}',limits.cpus??'—').replace('{ram}',limits.memory_mib??'—').replace('{context}',limits.context??2048).replace('{tokens}',limits.max_tokens??512):'';save.disabled=false;show(t('connected'));}catch(error){show(error.message,'error');}}
+ document.querySelector('#ai-refresh').addEventListener('click',loadAI);
+ aiForm.addEventListener('submit',async event=>{event.preventDefault();save.disabled=true;try{await api('/api/ai',{provider:provider.value,model:model.value||''});await loadAI();show(t('saved'),'success');}catch(error){show(error.message,'error');save.disabled=false;}});
+ loadAI();
+}

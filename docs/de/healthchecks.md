@@ -1,6 +1,6 @@
 # Healthchecks: Lebenszeichen & Alarme
 
-Einstellungen & Verbindungen · 1.3.0.1
+Einstellungen & Verbindungen · 1.4.0.0
 
 1. Im eigenen Healthchecks-Konto zwei getrennte Checks für Server und Bot anlegen. Die jeweiligen UUID-Ping-URLs kopieren und unter Einstellungen → Healthchecks zuordnen. Benötigt werden Ping-URLs, kein Management-API-Schlüssel.
 

@@ -49,7 +49,15 @@ def ready_url():
     if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:raise ValueError('Ungueltiger Webzugang.')
     return origin+'/setup'
 
-def run(probe,stage_payload,namespace,child_env,select_source=None):
+def ensure_ollama(stage_payload,namespace,child_env):
+    helper=Path('/host/usr/local/lib/kiagent-ai/install_ollama.py')
+    if helper.exists():
+        protected_file(helper)
+        path='/usr/local/lib/kiagent-ai/install_ollama.py'
+    else:path=stage_payload()+'/tools/install_ollama.py'
+    subprocess.run(namespace+['/usr/bin/python3','-I','-B',path],check=True,env=child_env())
+
+def run(probe,stage_payload,namespace,child_env,select_source=None,check_ai=None):
     protected_directory(RESULT)
     lock=os.open(RESULT/'install.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
     try:
@@ -85,6 +93,8 @@ def run(probe,stage_payload,namespace,child_env,select_source=None):
                 connection=os.environ.get('INSTALL_SSH_CONNECTION','')
                 if connection:command+=['--ssh-connection',connection]
                 subprocess.run(command,check=True,env=child_env())
+        if check_ai:check_ai()
+        else:ensure_ollama(stage_payload,namespace,child_env)
         url=ready_url()
         if source_info:write(RESULT/'version.json',json.dumps(source_info,sort_keys=True)+'\n',0o644)
         status('ready',url)

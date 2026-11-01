@@ -204,10 +204,10 @@ async def ki(interaction: discord.Interaction, auftrag: str):
         AI_NEXT = time.monotonic() + 30
         record('discord','ai_started')
         try:
-            await interaction.edit_original_response(content='Auftrag und feste Statusmesswerte werden an OpenAI gesendet. Keine Aenderungen werden ausgefuehrt.')
+            await interaction.edit_original_response(content='Auftrag und feste Statusmesswerte werden vom gewählten KI-Anbieter verarbeitet. Keine Aenderungen werden ausgefuehrt.')
             payload = {'request': auftrag, 'measurements': await asyncio.to_thread(snapshot)}
             key = (CREDENTIALS / 'openai-api-key').read_text().strip()
-            decision=await asyncio.wait_for(resolve(key,auftrag,payload['measurements']),timeout=50)
+            decision=await asyncio.wait_for(resolve(key,auftrag,payload['measurements']),timeout=100)
             if decision['intent']=='install':
                 record('discord','ai_plan')
                 await propose_install(interaction,decision['package'])

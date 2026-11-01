@@ -1,0 +1,10 @@
+{% extends 'dashboard_base.html' %}{% block content %}
+<p class="eyebrow">{{ t('configuration') }}</p><h1>{{ t('ai_provider') }} · Ollama / OpenAI</h1>
+<p>{{ t('ai_privacy') }}</p><div id="notice" class="notice" role="status">{{ t('loading') }}</div>
+<form id="ai-form" class="card"><label for="ai-provider">{{ t('ai_provider') }}</label><select id="ai-provider"><option value="ollama">Ollama</option><option value="openai">OpenAI</option></select>
+<label for="ai-model">{{ t('model') }} · Ollama</label><select id="ai-model"></select>
+<p id="ai-state"></p><p id="ai-mode"></p><p id="ai-limits"></p>
+<p class="fine">{{ t('ai_existing_notice') }}</p>
+<footer class="save-bar"><button type="button" id="ai-refresh" class="secondary">{{ t('refresh') }}</button><button id="ai-save" disabled>{{ t('save') }}</button></footer></form>
+<section class="card"><h2>{{ t('documentation') }}</h2><p>{{ t('ai_help') }}</p><a href="https://docs.ollama.com/" target="_blank" rel="noopener noreferrer">Ollama · {{ t('official_docs') }} ↗</a><p><a href="/settings/openai">OpenAI · {{ t('api_key') }} ↗</a></p></section>
+{% endblock %}

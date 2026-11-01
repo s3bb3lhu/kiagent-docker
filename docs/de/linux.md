@@ -1,6 +1,6 @@
 # Linux-Vollinstallation
 
-Installation & Einstieg · 1.3.0.1
+Installation & Einstieg · 1.4.0.0
 
 1. Die Vollinstallation ist für Ubuntu 26.04 amd64 mit systemd, mdadm, Docker Engine und Compose geprüft. Rootless Docker und UID-Remapping werden vom Host-Adapter nicht unterstützt. Bestehende RAID- und Alarmkonfiguration vorher prüfen.
 

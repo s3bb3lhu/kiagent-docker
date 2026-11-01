@@ -23,9 +23,10 @@ class UnattendedTests(unittest.TestCase):
         self.record={'kind':'compose-host-install-v1','network_ready':True,'origin':'https://8.8.8.8:9443'}
         self.marker=self.config/'compose-install.json';self.marker.write_text(json.dumps(self.record))
         self.select=Mock(return_value=nullcontext({'path':ROOT,'metadata':{'channel':'stable','version':'9.8.7.6','tag':'v9.8.7.6','commit':'a'*40}}))
+        self.check_ai=Mock()
 
     def call(self,facts,stage=None):
-        return boot.run(lambda:facts,stage or Mock(return_value='/staged'),['namespace'],lambda:{},select_source=self.select)
+        return boot.run(lambda:facts,stage or Mock(return_value='/staged'),['namespace'],lambda:{},select_source=self.select,check_ai=self.check_ai)
 
     def test_fresh_install_records_url_and_requires_no_input(self):
         with patch.object(boot.subprocess,'run') as execute,patch('builtins.input',side_effect=AssertionError('No questions')):
@@ -43,6 +44,7 @@ class UnattendedTests(unittest.TestCase):
             self.assertIn('start',execute.call_args.args[0]);stage.assert_not_called()
             self.assertEqual(before,self.marker.read_bytes())
             self.select.assert_not_called()
+            self.check_ai.assert_called_once()
 
     def test_another_install_is_never_started_or_updated(self):
         (self.config/'first-install-owner').write_text('b'*64)

@@ -1,6 +1,6 @@
 # Serversteuerung / Server Control — Kiagent Docker
 
-**Version 1.3.0.1** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.3.0.1)
+**Version 1.4.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.4.0.0)
 
 Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md). In der angemeldeten Oberfläche: **Einstellungen → Dokumentation**. Veröffentlichungsstand und Grenzen: [RELEASE.md](RELEASE.md) und [CHANGELOG.md](CHANGELOG.md).
 
@@ -21,6 +21,10 @@ Der Installationshelfer liegt auf `main` und lädt für jede Neuinstallation den
 Die fertige HTTPS-Adresse steht automatisch in **`.installation/WEBADRESSE.txt`** sowie im Protokoll von `setup`. Optional: `docker compose logs -f setup`. Docker selbst blendet mit `-d` spätere Anwendungsausgaben aus. Der beendete Setup-Container mit Exitcode 0 ist normal. Vorhandene Dienste bleiben unverändert; ohne freie Zertifikatsausstellungsmöglichkeit wird geschützt abgebrochen.
 
 **[Erstinstallations-Anleitung, Zertifikate und Betriebsgrenzen](FIRST_INSTALL.md)** · [Host-Betrieb und bisheriger expliziter Installer](FULL_COMPOSE.md). Die Anwendungsversion wird für diesen Erstinstallationsweg nicht erhöht; bestehende Release-Tags bleiben unverändert.
+
+## Lokale KI mit Ollama
+
+Ollama ergänzt OpenAI. Jede Docker-Installation prüft vorhandene Instanzen, ohne deren Konfiguration, Modelle oder Limits zu ändern. Fehlt Ollama und reichen die Ressourcen, wird eine eigene CPU-/RAM-begrenzte Instanz mit kleinem Modell eingerichtet. Auswahl und Status: **Einstellungen → KI-Anbieter**. Für bestehende Server ist die ausdrückliche Aktivierung erforderlich; es gibt kein automatisches Anwendungsupdate. [Ressourcen, Grenzen und Aktivierung](OLLAMA.md).
 
 ## Was enthalten ist
 

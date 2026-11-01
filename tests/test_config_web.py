@@ -44,6 +44,19 @@ class WebTests(unittest.TestCase):
         self.assertEqual(self.get('/api/overview').status_code,401)
         self.assertFalse(self.calls)
 
+    def test_ai_settings_are_authenticated_and_keep_tokens_separate(self):
+        self.assertEqual(self.get('/api/ai').status_code,401)
+        self.assertEqual(self.get('/settings/ai').status_code,302)
+        self.login()
+        for language in ('de','en','es','fr'):
+            page=self.get('/settings/ai?lang='+language)
+            self.assertEqual(page.status_code,200);self.assertIn('id="ai-form"',page.text)
+            self.assertNotIn('data-secret=',page.text)
+        token=self.csrf()
+        result=self.client.post('/api/ai',base_url=ORIGIN,headers={'Origin':ORIGIN,'X-CSRF-Token':token},json={'provider':'ollama','model':'small:existing'})
+        self.assertEqual(result.status_code,200)
+        self.assertEqual(self.calls[-1],{'op':'ai_select','provider':'ollama','model':'small:existing'})
+
     def test_custom_https_ports_keep_secure_cookies_and_setup_ip_restriction(self):
         root=Path(self.temporary.name)
         AuthStore(root/'auth').reset()

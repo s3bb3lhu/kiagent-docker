@@ -1,6 +1,6 @@
 # Telegram: token and user ID
 
-Settings and connections · 1.3.0.1
+Settings and connections · 1.4.0.0
 
 1. Open BotFather through the official link. Use /newbot to create a bot or /mybots to select an existing one and manage its API token. Enter the token only in your installer or Settings → Telegram.
 

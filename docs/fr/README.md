@@ -1,4 +1,4 @@
-# Documentation · 1.3.0.1
+# Documentation · 1.4.0.0
 
 ## Installation et premiers pas
 
@@ -10,6 +10,7 @@
 - [Connexion, mot de passe et HTTPS](access.md)
 - [Telegram : token et identifiant utilisateur](telegram.md)
 - [Discord : bot, token et identifiants](discord.md)
+- [Ollama : IA locale et limites](ollama.md)
 - [OpenAI : clé API et IA](openai.md)
 - [Healthchecks : signaux de vie et alertes](healthchecks.md)
 - [Surveillance RAID et automatisation](monitoring.md)

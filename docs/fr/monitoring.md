@@ -1,6 +1,6 @@
 # Surveillance RAID et automatisation
 
-Paramètres et connexions · 1.3.0.1
+Paramètres et connexions · 1.4.0.0
 
 1. Dans Paramètres → Surveillance, saisissez des périphériques md existants, comme md4. Membres RAID, partitions et synchronisation restent inchangés. Un resync avec degraded=0 ne prouve pas une panne de disque.
 

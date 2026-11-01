@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.0.0 — 2026-11-01
+
+- Add explicit Ollama/OpenAI selection for Telegram, Discord and diagnostics without automatic external fallback.
+- Detect and reuse existing Ollama without changing models, configuration, limits, ports or service state.
+- Provision a private CPU-only Ollama instance only when absent and resources permit, with hard CPU/RAM limits and small Qwen3 models.
+- Add an unprivileged, peer-authenticated bounded AI bridge, four-language settings and documentation.
+- Check Ollama on every owned default Compose start and provide backed-up explicit activation for existing Docker installations.
+
+
 ## Stable-Auswahl bei Neuinstallationen — ohne Bestandsupdate
 
 - Resolve the latest published stable GitHub release on every fresh install, pin its commit, validate and safely unpack the source archive.

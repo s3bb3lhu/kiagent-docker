@@ -38,6 +38,10 @@ Der Zustand steht zusätzlich in `.installation/status.json` (`installing`, `rea
 
 Auf der ausgegebenen Seite zuerst das Administrator-Passwort erstellen. Danach Telegram-/Discord-IDs und Tokens eintragen, bei Bedarf OpenAI und Healthchecks ergänzen und **Prüfen und aktivieren** wählen. Bis zur erfolgreichen Prüfung bleiben Bots und Host-Aktionen gesperrt. Es gibt kein Standardpasswort und keinen Einrichtungscode.
 
+## Ollama-Prüfung
+
+Bei Erstinstallation und jedem erneuten Start derselben Installation wird Ollama geprüft. Vorhandene Instanzen werden unverändert genutzt. Eine neue Instanz wird nur bei ausreichenden Ressourcen erstellt und hart begrenzt; kleine Systeme erhalten ein kleineres Modell oder einen Hinweis, wenn eine sichere Installation nicht möglich ist. Die Prüfung kann beim ersten Modell-Download mehrere Minuten dauern. Danach im Browser **Einstellungen → KI-Anbieter** öffnen. Details: [OLLAMA.md](OLLAMA.md). Die Prüfung ist kein automatisches Versionsupdate der Serversteuerung.
+
 ## SSL/TLS-Zertifikate
 
 Vor der Einrichtung wird nach einem gültigen IP-Zertifikat gesucht: in `/etc/letsencrypt` sowie in Ordnern, die laufende Container dort eingebunden haben. IP-Zuordnung, Vertrauenskette, Gültigkeit, Schlüssel und Pfadschutz werden geprüft. Ein geeignetes Zertifikat wird über eigene rootgeschützte Kopien übernommen. Bestehende Zertifikatsdateien und Webserver bleiben unverändert; ein eigener Timer übernimmt Erneuerungen.

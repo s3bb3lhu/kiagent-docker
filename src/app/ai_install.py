@@ -1,6 +1,6 @@
 """Structured installation intent; output is never a shell command or approval."""
 import json
-from openai import AsyncOpenAI
+from ai_provider import complete
 from package_policy import valid_package
 
 SCHEMA={'type':'object','properties':{'intent':{'type':'string','enum':['install','answer']},
@@ -32,10 +32,5 @@ def decode(text):
     return value
 
 async def resolve(key,request,measurements):
-    async with AsyncOpenAI(api_key=key,base_url='https://api.openai.com/v1',timeout=45,max_retries=0) as client:
-        response=await client.responses.create(model='gpt-4.1-mini',instructions=INSTRUCTIONS,
-            input=json.dumps({'request':request,'measurements':measurements},ensure_ascii=True),
-            text={'format':{'type':'json_schema','name':'package_intent','strict':True,'schema':SCHEMA}},
-            tools=[],store=False,max_output_tokens=1100)
-    if response.status!='completed':raise ValueError('Incomplete AI answer')
-    return decode(response.output_text)
+    text=await complete(key,INSTRUCTIONS,json.dumps({'request':request,'measurements':measurements},ensure_ascii=True),schema=SCHEMA,max_tokens=1100)
+    return decode(text)

@@ -49,12 +49,12 @@ async def ki(update, context):
         NEXT_ALLOWED = time.monotonic() + 30
         record('telegram','ai_started')
         await message.reply_text(
-            'Dein Auftrag und feste Statusmesswerte werden an OpenAI gesendet. '
+            'Dein Auftrag und feste Statusmesswerte werden vom gewählten KI-Anbieter verarbeitet. '
             'Bei Installationswuenschen bereite ich einen echten Paketplan mit gesonderter Bestaetigung vor.')
         try:
             key = (Path(os.environ['CREDENTIALS_DIRECTORY']) /
                    'openai-api-key').read_text().strip()
-            decision=await asyncio.wait_for(resolve(key,request,await asyncio.to_thread(snapshot)),timeout=50)
+            decision=await asyncio.wait_for(resolve(key,request,await asyncio.to_thread(snapshot)),timeout=100)
             if decision['intent']=='install':
                 record('telegram','ai_plan')
                 await message.reply_text('Installationswunsch erkannt: '+decision['package']+'. Der echte APT-Plan wird jetzt vorbereitet. Erst nach deiner Bestaetigung wird installiert.')

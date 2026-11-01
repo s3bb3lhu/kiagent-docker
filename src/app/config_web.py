@@ -286,6 +286,21 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         if rpc({'op':'overview'}).get('setup_required'):return redirect('/settings/setup')
         return render_template('dashboard_connections.html',csrf=csrf(),page_active='settings',selected_provider=provider)
 
+    @app.get('/settings/ai')
+    @authenticated
+    def settings_ai():
+        return render_template('dashboard_ai.html',csrf=csrf(),page_active='settings')
+
+    @app.route('/api/ai',methods=['GET','POST'])
+    @authenticated
+    def ai_settings():
+        data=request.get_json(silent=True) if request.method=='POST' else None
+        if request.method=='POST':
+            if not isinstance(data,dict) or set(data)!={'provider','model'}:abort(400)
+            result=rpc({'op':'ai_select',**data})
+        else:result=rpc({'op':'ai_info'})
+        return jsonify(result),200 if result.get('ok') else 400
+
     @app.get('/console')
     @authenticated
     def console_page():return render_template('dashboard_console.html',csrf=csrf(),page_active='console')

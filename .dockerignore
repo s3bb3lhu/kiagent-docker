@@ -39,3 +39,5 @@
 !.gitattributes
 !tests/
 !tests/*.py
+
+!OLLAMA.md

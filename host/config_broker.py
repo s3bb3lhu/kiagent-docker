@@ -182,6 +182,12 @@ class Broker:
     def handle(self,request):
         if not isinstance(request,dict):
             raise Invalid('schema')
+        if request.get('op') in {'ai_info','ai_select'}:
+            if request.get('op')=='ai_select' and (self.active or self.blocked or (self.state.parent/'maintenance').exists()):raise Invalid('busy')
+            try:
+                from ai_admin import handle
+                return handle(request)
+            except (ImportError,OSError,RuntimeError):return {'ok':False,'code':'ai_unavailable'}
         if request.get('op') in {'web_status','web_activity','web_prepare','web_decide','web_job','web_read'}:
             if not hasattr(self,'control'):return {'ok':False,'code':'unsupported'}
             return self.control.handle(request)

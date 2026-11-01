@@ -58,10 +58,14 @@ def main():
         state={'kind':'compose-host-install-v1','origin':origin,'address':address,'admin_ip':admin,'port':args.port,'parallel':parallel,'loopback_port':loopback,'certificate':certificate,'network_ready':False}
         atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     try:
-        if state.get('parallel'):
-            parallel_https.configure(address,admin,args.port,state['loopback_port'],state['certificate'])
-        else:
-            subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port),'--unattended'],check=True)
+        if not state.get('tls_ready'):
+            if state.get('parallel'):
+                parallel_https.configure(address,admin,args.port,state['loopback_port'],state['certificate'])
+            else:
+                subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port),'--unattended'],check=True)
+            state['tls_ready']=True;atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
+        if (PROJECT/'tools/install_ollama.py').is_file():
+            subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_ollama.py')],check=True)
     except BaseException:
         print('Die Web-Grundinstallation ist vorhanden; Bots warten weiter auf Browser-Einrichtung. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
         raise

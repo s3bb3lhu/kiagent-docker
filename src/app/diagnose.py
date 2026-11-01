@@ -53,32 +53,12 @@ def snapshot():
 
 
 async def request_diagnosis():
+    from ai_provider import complete
     credentials = Path(os.environ["CREDENTIALS_DIRECTORY"])
     key = (credentials / "openai-api-key").read_text().strip()
-    if not key or any(c.isspace() for c in key):
-        raise ValueError("Ungültiger API-Schlüssel")
 
     payload = json.dumps(snapshot(), ensure_ascii=True)
-    async with AsyncOpenAI(
-        api_key=key,
-        base_url="https://api.openai.com/v1",
-        timeout=30.0,
-        max_retries=0,
-    ) as client:
-        response = await client.responses.create(
-            model=MODEL,
-            instructions=INSTRUCTIONS,
-            input=payload,
-            tools=[],
-            store=False,
-            max_output_tokens=600,
-        )
-
-    text = response.output_text.strip()
-    if not text:
-        raise ValueError("Keine Textantwort")
-    if response.status != "completed":
-        text += "\n\nHinweis: Antwort nicht vollständig abgeschlossen."
+    text=await complete(key,INSTRUCTIONS,payload,max_tokens=600)
     return text[:3300]
 
 
@@ -118,10 +98,10 @@ async def diagnose(update, context):
 
         next_allowed = time.monotonic() + 60
         await message.reply_text(
-            "Die festen Systemmesswerte werden jetzt von OpenAI ausgewertet."
+            "Die festen Systemmesswerte werden jetzt vom gewählten KI-Anbieter ausgewertet."
         )
         try:
-            text = await asyncio.wait_for(request_diagnosis(), timeout=40)
+            text = await asyncio.wait_for(request_diagnosis(), timeout=100)
         except AuthenticationError:
             text = "API-Anmeldung fehlgeschlagen. Schlüssel auf dem Server prüfen."
         except PermissionDeniedError:
