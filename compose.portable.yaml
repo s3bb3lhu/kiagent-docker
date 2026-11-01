@@ -12,7 +12,8 @@ services:
     security_opt: [no-new-privileges:true]
     pids_limit: 64
     mem_limit: 192m
-    tmpfs: [/tmp:rw,noexec,nosuid,size=16m,mode=1777]
+    tmpfs:
+      - '/tmp:rw,noexec,nosuid,size=16m,mode=1777'
     ports: ['127.0.0.1:8787:8080']
     environment:
       CONFIG_ORIGIN: ${CONFIG_ORIGIN:-http://127.0.0.1:8787}
