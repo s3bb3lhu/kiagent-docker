@@ -1,4 +1,4 @@
-# Documentation · 1.3.0.0
+# Documentation · 1.3.0.1
 
 ## Installation and first steps
 

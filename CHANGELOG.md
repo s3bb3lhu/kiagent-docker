@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0.1 — 2026-11-01
+
+- Normalize the host working directory after namespace entry and explicitly set the project directory for parallel HTTPS Compose commands.
+- Add a real TLS integration regression test starting from a deleted inherited working directory.
+- Document in-place continuation of a 1.3.0.0 setup without reinstalling or modifying existing services.
+
+
 ## 1.3.0.0 — 2026-11-01
 
 - Add isolated HTTPS co-location on an automatically selected free port from 9443, leaving existing proxies, containers and port 8787 unchanged.

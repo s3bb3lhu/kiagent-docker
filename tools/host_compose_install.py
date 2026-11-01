@@ -27,6 +27,8 @@ def marker_read():
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');args=parser.parse_args()
     if os.geteuid()!=0:raise SystemExit('Host-Installation benoetigt root.')
+    # nsenter may inherit a cwd outside the host root. Resolve a real host cwd now.
+    os.chdir('/')
     if args.resume_network:
         prior=marker_read();address=prior['address'];admin=prior['admin_ip']
         args.port=prior.get('port',args.port)

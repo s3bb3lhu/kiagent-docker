@@ -1,6 +1,6 @@
 # Linux-Vollinstallation
 
-Installation & Einstieg · 1.3.0.0
+Installation & Einstieg · 1.3.0.1
 
 1. Die Vollinstallation ist für Ubuntu 26.04 amd64 mit systemd, mdadm, Docker Engine und Compose geprüft. Rootless Docker und UID-Remapping werden vom Host-Adapter nicht unterstützt. Bestehende RAID- und Alarmkonfiguration vorher prüfen.
 
@@ -19,4 +19,4 @@ sudo python3 tools/install.py
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
-- [Vollinstallation per Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.0/FULL_COMPOSE.md)
+- [Vollinstallation per Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.1/FULL_COMPOSE.md)

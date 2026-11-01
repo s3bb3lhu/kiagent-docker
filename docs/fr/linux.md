@@ -1,6 +1,6 @@
 # Installation Linux complète
 
-Installation et premiers pas · 1.3.0.0
+Installation et premiers pas · 1.3.0.1
 
 1. L’installation complète est testée sur Ubuntu 26.04 amd64 avec systemd, mdadm, Docker Engine et Compose. L’adaptateur ne prend pas en charge Docker rootless ni le remappage des UID. Vérifiez d’abord le RAID et les alertes existantes.
 
@@ -19,4 +19,4 @@ sudo python3 tools/install.py
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
-- [Installation complète avec Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.0/FULL_COMPOSE.md)
+- [Installation complète avec Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.1/FULL_COMPOSE.md)

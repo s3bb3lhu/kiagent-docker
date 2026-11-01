@@ -1,4 +1,4 @@
-# Vollinstallation per Docker Compose — 1.3.0.0
+# Vollinstallation per Docker Compose — 1.3.0.1
 
 Diese Variante installiert und startet Telegram, Discord, Weboberfläche, Host-Lebenszeichen, begrenzte Serveraktionen und lokale Sicherungen. Die festen Root-Agenten werden vom einmaligen Installer als systemd-Dienste auf dem Linux-Host eingerichtet. Im laufenden Betrieb erhalten Bots und Weboberfläche weder einen privilegierten Container noch einen Docker-Socket.
 
@@ -17,8 +17,8 @@ Windows Server benötigt eine entsprechende Linux-VM. Docker Desktop beziehungsw
 Auf einem geeigneten Server ohne vorhandene vollständige Kiagent-Hostinstallation:
 
 ```bash
-git clone --branch v1.3.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.3.0.0
-cd kiagent-docker-1.3.0.0
+git clone --branch v1.3.0.1 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.3.0.1
+cd kiagent-docker-1.3.0.1
 docker compose -f compose.install.yaml run --rm --build installer
 ```
 
@@ -89,6 +89,14 @@ sudo systemctl stop kiagent-docker.service
 Danach mit `sudo systemctl start kiagent-docker.service` wieder starten. Die systemd-Einbindung und die Container-Neustartregeln sorgen im regulären Betrieb für Start nach einem Serverneustart. `compose.install.yaml` ist nur für die Einrichtung, `compose.quickstart.yaml` weiterhin nur für das Portal. Die jeweilige Datei bei Compose-Befehlen immer ausdrücklich angeben.
 
 ## Wenn nur HTTPS fehlschlägt
+
+Bei Version 1.3.0.0 kann nach erfolgreicher Web-Grundinstallation `getwd: no such file or directory` auftreten. Der laufende Installer hat dann ein im Host-Namensraum nicht erreichbares Arbeitsverzeichnis geerbt. Für genau diesen Fehler die vorhandene Installation direkt auf dem Host aus einem gültigen Ordner fortsetzen, ohne neue Dateien über die Installation zu kopieren:
+
+```bash
+sudo sh -c 'cd /opt/kiagent-docker/project && exec /usr/bin/python3 -I -B tools/host_compose_install.py --resume-network'
+```
+
+Der vorhandene Installationsnachweis, Port und Zertifikat werden weiterverwendet. Keine Secret-Verzeichnisse oder Container löschen. Ab Version 1.3.0.1 setzt der Installer ausdrücklich ein erreichbares Host-Arbeitsverzeichnis; die CI prüft den TLS-Schritt zusätzlich aus einem zuvor entfernten Arbeitsverzeichnis.
 
 Ist die Web-Grundinstallation vorhanden, aber Zertifikat oder Erreichbarkeit scheitern, zuerst den ausgegebenen Web-Port, die Zertifikatsquelle und die automatisch erkannten Adressen prüfen. Bei einem neu ausgestellten Zertifikat zusätzlich TCP 80 prüfen. Nicht neu installieren und keine Secret-Verzeichnisse löschen. Der Installer hinterlässt einen rootgeschützten Nachweis und nennt dann ausdrücklich diese Wiederaufnahme:
 

@@ -47,6 +47,6 @@ class ParallelHttpsTests(unittest.TestCase):
             root=Path(directory);state=root/'state';state.write_text('{"kind":"parallel-https-v1","source":{},"address":"8.8.8.8"}')
             pending=root/'reload-pending';pending.touch()
             with patch.object(tls,'STATE',state),patch.object(tls,'TLS',root),patch.object(tls,'protected'),patch.object(tls,'copy_certificate',return_value=False),patch.object(tls.subprocess,'run') as run:
-                tls.sync();run.assert_called_once();self.assertFalse(pending.exists())
+                tls.sync();run.assert_called_once();self.assertEqual(run.call_args.kwargs['cwd'],tls.PROJECT);self.assertFalse(pending.exists())
 
 if __name__=='__main__':unittest.main()

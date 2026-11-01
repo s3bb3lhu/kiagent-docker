@@ -1,6 +1,6 @@
 # OpenAI : clé API et IA
 
-Paramètres et connexions · 1.3.0.0
+Paramètres et connexions · 1.3.0.1
 
 1. Ouvrez API keys, choisissez votre projet et créez une clé secrète. Saisissez-la directement dans Paramètres → OpenAI. Vérifiez les autorisations, l’accès au modèle et la facturation du projet. N’envoyez jamais d’identifiants dans un chat.
 

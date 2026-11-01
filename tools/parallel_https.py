@@ -112,8 +112,8 @@ def configure(address,admin,port,loopback_port,source):
     try:
         atomic(compose,rendered.encode())
         atomic(env_path,('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
-        subprocess.run(COMPOSE+['config','--quiet'],check=True,timeout=30)
-        subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'],check=True,timeout=120)
+        subprocess.run(COMPOSE+['config','--quiet'],check=True,timeout=30,cwd=PROJECT)
+        subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'],check=True,timeout=120,cwd=PROJECT)
         (TLS/'reload-pending').unlink(missing_ok=True)
         atomic(STATE,json.dumps({'kind':'parallel-https-v1','address':address,'port':port,'source':source}).encode(),0o600)
         service='''[Unit]
@@ -134,11 +134,11 @@ WantedBy=timers.target
 '''
         atomic(Path('/etc/systemd/system/kiagent-tls-sync.service'),service.encode())
         atomic(Path('/etc/systemd/system/kiagent-tls-sync.timer'),timer.encode())
-        subprocess.run(['/usr/bin/systemctl','daemon-reload'],check=True)
-        subprocess.run(['/usr/bin/systemctl','enable','--now','kiagent-tls-sync.timer'],check=True)
+        subprocess.run(['/usr/bin/systemctl','daemon-reload'],check=True,cwd=PROJECT)
+        subprocess.run(['/usr/bin/systemctl','enable','--now','kiagent-tls-sync.timer'],check=True,cwd=PROJECT)
     except BaseException:
         atomic(compose,before_compose);atomic(env_path,before_env,0o600)
-        subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'],check=False,timeout=120)
+        subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--no-deps','--force-recreate','--wait','--wait-timeout','90','config-web'],check=False,timeout=120,cwd=PROJECT)
         raise
 
 def sync():
@@ -147,7 +147,7 @@ def sync():
     if state.get('kind')!='parallel-https-v1':raise ValueError('Unbekannter TLS-Nachweis.')
     changed=copy_certificate(state['source'],state['address'])
     if changed or (TLS/'reload-pending').exists():
-        subprocess.run(COMPOSE+['kill','-s','HUP','config-web'],check=True,timeout=30)
+        subprocess.run(COMPOSE+['kill','-s','HUP','config-web'],check=True,timeout=30,cwd=PROJECT)
         (TLS/'reload-pending').unlink(missing_ok=True)
 
 if __name__=='__main__':

@@ -1,6 +1,6 @@
 # Full Linux installation
 
-Installation and first steps · 1.3.0.0
+Installation and first steps · 1.3.0.1
 
 1. The full installation is tested on Ubuntu 26.04 amd64 with systemd, mdadm, Docker Engine and Compose. The host adapter does not support rootless Docker or UID remapping. Check existing RAID and alert configuration first.
 
@@ -19,4 +19,4 @@ sudo python3 tools/install.py
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
-- [Full installation with Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.0/FULL_COMPOSE.md)
+- [Full installation with Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.1/FULL_COMPOSE.md)

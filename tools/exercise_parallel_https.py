@@ -24,7 +24,11 @@ def exercise():
             before=[hashlib.sha256(p.read_bytes()).digest() for p in (cert,key)]
             existing.bind(('0.0.0.0',9443));existing.listen()
             port=tls.free_port(9443);assert port!=9443
-            tls.configure('8.8.8.8','127.0.0.1',port,8787,source)
+            # Reproduce an unreachable inherited cwd without touching any existing service.
+            previous=os.open('.',os.O_RDONLY)
+            vanished=root/'vanished';vanished.mkdir();os.chdir(vanished);vanished.rmdir()
+            try:tls.configure('8.8.8.8','127.0.0.1',port,8787,source)
+            finally:os.fchdir(previous);os.close(previous)
             context=ssl.create_default_context(cafile=str(cert))
             with socket.create_connection(('127.0.0.1',port),timeout=10) as raw:
                 with context.wrap_socket(raw,server_hostname='8.8.8.8') as connection:

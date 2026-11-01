@@ -1,6 +1,6 @@
 # Status, CPU-Kerne & Darstellung
 
-Funktionen & Steuerung · 1.3.0.0
+Funktionen & Steuerung · 1.3.0.1
 
 1. Status zeigt Host-CPU, alle logischen CPU-Kerne, RAM, Laufzeit, Laufwerke, Dateisysteme, Netzwerkraten und zugewiesene IP-Adressen. Aktualisierung alle drei Sekunden im sichtbaren Tab. CPU und Netzwerkraten benötigen zwei Messungen; beim Verbindungsfehler bleiben Werte als veraltet markiert.
 
