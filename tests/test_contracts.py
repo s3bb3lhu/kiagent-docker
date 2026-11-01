@@ -41,7 +41,7 @@ class Contracts(unittest.TestCase):
         self.assertNotIn('shutil.disk_usage(',text)
         self.assertIn('host_metrics_client import snapshot',text)
     def test_container_security_contract(self):
-        text = (ROOT/'compose.yaml').read_text()
+        text = (ROOT/'compose.runtime.yaml').read_text()
         self.assertNotIn('privileged:',text)
         self.assertNotIn('docker.sock',text)
         self.assertNotIn('pid: host',text)

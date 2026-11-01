@@ -25,7 +25,7 @@ def marker_read():
     return data
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');parser.add_argument('--install-owner');args=parser.parse_args()
     if os.geteuid()!=0:raise SystemExit('Host-Installation benoetigt root.')
     # nsenter may inherit a cwd outside the host root. Resolve a real host cwd now.
     os.chdir('/')
@@ -43,15 +43,18 @@ def main():
     else:
         if PROJECT.exists() or CONFIG.exists():raise SystemExit('Bestehende Installation wird nicht ueberschrieben.')
         listeners=subprocess.check_output(['/usr/bin/ss','-H','-lnt'],text=True)
-        parallel=Path('/etc/nginx').exists() or any(line.split()[3].endswith((':80',':'+str(args.port),':8787')) for line in listeners.splitlines())
-        certificate=parallel_https.discover(address) if parallel else None
+        certificate=parallel_https.discover(address,required=False)
+        parallel=certificate is not None or Path('/etc/nginx').exists() or any(line.split()[3].endswith((':80',':'+str(args.port),':8787')) for line in listeners.splitlines())
+        if parallel and certificate is None:raise ValueError('Vorhandener Webserver ohne geeignetes IP-Zertifikat. Keine fremde Konfiguration wird zur Zertifikatsausstellung veraendert.')
         loopback=parallel_https.free_port(18787,host='127.0.0.1') if parallel else 8787
         if parallel:
             args.port=parallel_https.free_port(max(9443,args.port),excluded=(loopback,8787))
             origin=origin_for(address,args.port)
             print('Parallelbetrieb: eigener HTTPS-Port '+str(args.port)+'. Vorhandene Dienste bleiben unveraendert.')
         # Only internal session material is generated; provider credentials come from the browser.
-        subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py'),'--loopback-port',str(loopback)],check=True)
+        command=['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py'),'--loopback-port',str(loopback)]
+        if args.install_owner:command+=['--install-owner',args.install_owner]
+        subprocess.run(command,check=True)
         state={'kind':'compose-host-install-v1','origin':origin,'address':address,'admin_ip':admin,'port':args.port,'parallel':parallel,'loopback_port':loopback,'certificate':certificate,'network_ready':False}
         atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     try:

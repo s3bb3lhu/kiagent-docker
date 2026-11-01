@@ -6,15 +6,21 @@ Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Es
 
 Selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Im neuen Compose-Installationsweg werden sie erst nach dem Web-Start im Browser eingegeben.
 
-## Vollständig per Compose installieren und starten
+## Erstinstallation: ein Compose-Befehl
 
-Die neue [Vollinstallations-Anleitung](FULL_COMPOSE.md) richtet mit einem einmaligen Compose-Installer Telegram, Discord, Web und die begrenzten Host-Agenten ein. Standardzugang danach: **https://DEINE-SERVER-IP:8443**; der Port ist wählbar. Unterstützt werden frische Ubuntu-24.04-/26.04-amd64-Hosts mit systemd und regulärem Docker.
+Auf einem frischen unterstützten Ubuntu-Host mit Docker:
 
 ```bash
-docker compose -f compose.install.yaml run --rm --build installer
+git clone https://github.com/s3bb3lhu/kiagent-docker.git
+cd kiagent-docker
+docker compose up -d
 ```
 
-Dieser ausdrücklich privilegierte Einmal-Installer benötigt Hostzugriff und erkennt die Netzwerkadressen automatisch aus der direkten SSH-Verbindung. Es gibt keine Terminal-Abfragen; nach dem Start wird die Webadresse ausgegeben. Passwort, Dienst-IDs, API-Keys und Bot-Tokens werden danach im Browser eingegeben; bis zur erfolgreichen Aktivierung laufen keine Bots oder Host-Aktionen. Er wird anschließend entfernt; die laufenden Bots/Webcontainer bleiben ohne diese Rechte. Bestehende Installationen werden nicht überschrieben. Auf belegten Hosts nutzt der automatische Parallelbetrieb einen freien HTTPS-Port ab 9443 und ein vorhandenes gültiges IP-Zertifikat. Bestehende Webserver, Container und Zertifikatsquellen bleiben unverändert. Auf freien Hosts benötigt die neue Zertifikatsausstellung TCP 80; der neue Web-Port muss immer erreichbar sein. Details und Wiederaufnahme: [FULL_COMPOSE.md](FULL_COMPOSE.md).
+Der neue Standardweg liegt auf `main` und aktualisiert keine bestehende Installation. Er prüft vorhandene IP-Zertifikate, übernimmt ein gültiges Zertifikat lesend oder stellt auf einem freien Server automatisch eines aus. Die Netzwerkadressen werden erkannt; Passwort und Dienstzugänge werden danach ausschließlich im Browser eingerichtet.
+
+Die fertige HTTPS-Adresse steht automatisch in **`.installation/WEBADRESSE.txt`** sowie im Protokoll von `setup`. Optional: `docker compose logs -f setup`. Docker selbst blendet mit `-d` spätere Anwendungsausgaben aus. Der beendete Setup-Container mit Exitcode 0 ist normal. Vorhandene Dienste bleiben unverändert; ohne freie Zertifikatsausstellungsmöglichkeit wird geschützt abgebrochen.
+
+**[Erstinstallations-Anleitung, Zertifikate und Betriebsgrenzen](FIRST_INSTALL.md)** · [Host-Betrieb und bisheriger expliziter Installer](FULL_COMPOSE.md). Die Anwendungsversion wird für diesen Erstinstallationsweg nicht erhöht; bestehende Release-Tags bleiben unverändert.
 
 ## Was enthalten ist
 

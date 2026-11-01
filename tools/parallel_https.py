@@ -53,7 +53,7 @@ def validate(source,address):
     if public!=output(['/usr/bin/openssl','pkey','-in',str(key),'-passin','pass:','-pubout']):raise ValueError('Zertifikat und Schluessel passen nicht zusammen.')
     return cert.read_bytes(),key.read_bytes()
 
-def discover(address):
+def discover(address,required=True):
     roots={Path('/etc/letsencrypt')}
     identifiers=output(['/usr/bin/docker','ps','-q']).split()
     # Read mount metadata only, never container environments or application secrets.
@@ -68,7 +68,8 @@ def discover(address):
             try:validate(source,address)
             except (OSError,ValueError,subprocess.SubprocessError):continue
             return source
-    raise ValueError('Kein gueltiges vorhandenes IP-Zertifikat gefunden. Bestehende Proxys wurden nicht geaendert.')
+    if required:raise ValueError('Kein gueltiges vorhandenes IP-Zertifikat gefunden. Bestehende Proxys wurden nicht geaendert.')
+    return None
 
 def render_compose(text,loopback_port,port):
     replacements={

@@ -81,7 +81,7 @@ def main():
         for name in ('telegram-token','discord-token','openai-api-key','allowed-users','discord-access.json','hc-bot','hc-server','web-admin-hash','web-session-key'):
             (secrets/name).write_text('fixture')
         env.write_text(f'KIAGENT_UID={uid}\nKIAGENT_GID={gid}\nDISCORD_UID={uid+1}\nDISCORD_APPLICATION_ID=90\nKIAGENT_SECRETS_DIR={secrets}\nCONFIG_UID={uid+2}\nCONFIG_GID={gid}\n')
-        run('/usr/bin/docker','compose','--env-file',str(env),'-f',str(ROOT/'compose.yaml'),'config','--quiet')
+        run('/usr/bin/docker','compose','--env-file',str(env),'-f',str(ROOT/'compose.runtime.yaml'),'config','--quiet')
     image = subprocess.check_output(['/usr/bin/docker','image','inspect',IMAGE,'--format','{{.Id}}'],text=True).strip()
     print(json.dumps({'result':'success','image':image,'unit_tests':True,'peer_uid_preserved':True,
                      'host_metrics_adapter':True,'secret_file_permissions':True,'compose_valid':True,

@@ -24,7 +24,7 @@ Die portable Variante speichert und validiert die eingegebenen Einstellungen. Si
 
 ## Vollständige Linux-Serversteuerung
 
-Die bestehende Vollinstallation in `compose.yaml` enthält Telegram, Discord, Lebenszeichen, bestätigte Installationen aller APT-Pakete und RAID-Monitor-Reparaturen. Sie wurde für Ubuntu 26.04 amd64 mit systemd/mdadm geprüft. Die Host-Agenten bleiben außerhalb der Container; sie authentifizieren Verbindungen anhand fester Host-UIDs. Rootless-/UID-Remapping wird nicht unterstützt. Auf einem anderen Linux-System ist vor Installation die Kompatibilität der Host-Adapter zu prüfen.
+Die bestehende Laufzeitvorlage in `compose.runtime.yaml` enthält Telegram, Discord, Lebenszeichen, bestätigte Installationen aller APT-Pakete und RAID-Monitor-Reparaturen. Sie wurde für Ubuntu 26.04 amd64 mit systemd/mdadm geprüft. Die Host-Agenten bleiben außerhalb der Container; sie authentifizieren Verbindungen anhand fester Host-UIDs. Rootless-/UID-Remapping wird nicht unterstützt. Auf einem anderen Linux-System ist vor Installation die Kompatibilität der Host-Adapter zu prüfen.
 
 Diese Linux-Reparaturen dürfen auf Windows nicht als ausführbare Aktionen angeboten werden. Ein Windows-Host-Adapter ist noch nicht implementiert. Die portable Oberfläche bildet die Grundlage für solche weiteren Adapter; sie ersetzt diese nicht.
 

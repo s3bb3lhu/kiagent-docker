@@ -42,7 +42,7 @@ class FullComposeTests(unittest.TestCase):
    with self.assertRaises(SystemExit):install.main()
    execute.assert_not_called()
  def test_runtime_compose_never_inherits_installer_privileges(self):
-  runtime=(ROOT/'compose.yaml').read_text()
+  runtime=(ROOT/'compose.runtime.yaml').read_text()
   self.assertNotIn('privileged:',runtime);self.assertNotIn('pid: host',runtime);self.assertNotIn('docker.sock',runtime)
   setup=(ROOT/'compose.install.yaml').read_text()
   self.assertIn('profiles: [install]',setup);self.assertIn("restart: 'no'",setup);self.assertIn('driver: none',setup)

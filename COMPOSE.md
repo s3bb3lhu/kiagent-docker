@@ -1,6 +1,6 @@
 # Docker Compose — 1.3.0.1
 
-Für **Telegram, Discord und echte Serversteuerung vollständig per Compose** zuerst [FULL_COMPOSE.md](FULL_COMPOSE.md) verwenden. Die folgenden Portal-Befehle sind die ausdrücklich eingeschränkte Alternative.
+Für **Telegram, Discord und echte Serversteuerung mit `docker compose up -d`** zuerst [FIRST_INSTALL.md](FIRST_INSTALL.md) verwenden. Die folgenden Portal-Befehle sind die ausdrücklich eingeschränkte Alternative.
 
 ## Einfacher Portalstart / Portable portal
 
@@ -24,15 +24,15 @@ docker compose -f compose.quickstart.yaml down
 
 `down` ohne `--volumes` erhält die Konfiguration. `down` without `--volumes` preserves configuration. Do not run a second stack against an already occupied port 8787.
 
-**Die Dateiangabe `-f compose.quickstart.yaml` bei jedem Portal-Befehl beibehalten.** Ein einfaches `docker compose down` wählt automatisch die ebenfalls vorhandene `compose.yaml` für den vollständigen Host-Stack und meldet dann fehlende `KIAGENT_*`-/Discord-Einstellungen. Diese sind für den Portaltest nicht erforderlich.
+**Die Dateiangabe `-f compose.quickstart.yaml` bei jedem Portal-Befehl beibehalten.** Ein einfaches `docker compose down` betrifft auf dem aktuellen main-Zweig den Erstinstallations-Container, nicht das Portal oder den separat verwalteten Host-Stack.
 
-**Keep `-f compose.quickstart.yaml` on every portal command.** Plain `docker compose down` selects the full host stack in `compose.yaml` and reports missing `KIAGENT_*`/Discord settings. The portal test does not require those settings.
+**Keep `-f compose.quickstart.yaml` on every portal command.** On current main, plain `docker compose down` selects the first-install container, not the portal or the separately managed host runtime.
 
 ## Vollständige Linux-Steuerung / Full Linux control
 
-Die vollständige Datei ist [compose.yaml](compose.yaml). Sie enthält Telegram, Discord, Host-Lebenszeichen und Weboberfläche. Sie benötigt die von den Installationswerkzeugen angelegten Benutzer, Secret-Dateien und festen Host-Sockets. Die Root-Agenten laufen als systemd-Dienste außerhalb der Container; ein Docker-Socket oder privilegierter Container ist nicht erforderlich.
+Die vollständige Datei ist [compose.runtime.yaml](compose.runtime.yaml). Sie enthält Telegram, Discord, Host-Lebenszeichen und Weboberfläche. Sie benötigt die von den Installationswerkzeugen angelegten Benutzer, Secret-Dateien und festen Host-Sockets. Die Root-Agenten laufen als systemd-Dienste außerhalb der Container; ein Docker-Socket oder privilegierter Container ist nicht erforderlich.
 
-The full [compose.yaml](compose.yaml) includes Telegram, Discord, host heartbeat and web UI. It requires users, secret files and fixed host sockets created by the installer. Root agents run as systemd services outside containers; a Docker socket or privileged container is not needed.
+The full [compose.runtime.yaml](compose.runtime.yaml) includes Telegram, Discord, host heartbeat and web UI. It requires users, secret files and fixed host sockets created by the installer. Root agents run as systemd services outside containers; a Docker socket or privileged container is not needed.
 
 Auf einem kompatiblen, geprüften Ubuntu-Host aus dem entpackten Release-Verzeichnis / on a compatible, reviewed Ubuntu host from the release directory:
 

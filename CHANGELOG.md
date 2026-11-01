@@ -1,5 +1,13 @@
 # Changelog
 
+## Erstinstallationsweg auf main — ohne Versions-/Bestandsupdate
+
+- Default `docker compose up -d` performs first installation and saves the HTTPS URL to a local result file and setup logs.
+- Certificate discovery now also runs on unused hosts; valid existing certificates are reused, otherwise the clean-host ACME flow issues one.
+- Durable local ownership prevents updates or replacement of existing installations; repeat starts use installed code.
+- Keep application version and release tags unchanged. Add isolated plain-Compose integration coverage.
+
+
 ## 1.3.0.1 — 2026-11-01
 
 - Normalize the host working directory after namespace entry and explicitly set the project directory for parallel HTTPS Compose commands.

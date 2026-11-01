@@ -1,5 +1,7 @@
 # Vollinstallation per Docker Compose — 1.3.0.1
 
+**Neuer Standard auf main:** Für `docker compose up -d` ohne zusätzliche Installationsbefehle siehe [FIRST_INSTALL.md](FIRST_INSTALL.md). Die folgenden Befehle dokumentieren den weiterhin vorhandenen expliziten Installer und den Host-Betrieb.
+
 Diese Variante installiert und startet Telegram, Discord, Weboberfläche, Host-Lebenszeichen, begrenzte Serveraktionen und lokale Sicherungen. Die festen Root-Agenten werden vom einmaligen Installer als systemd-Dienste auf dem Linux-Host eingerichtet. Im laufenden Betrieb erhalten Bots und Weboberfläche weder einen privilegierten Container noch einen Docker-Socket.
 
 ## Voraussetzungen

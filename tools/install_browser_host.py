@@ -39,7 +39,8 @@ INSERT INTO settings VALUES('auto_enabled','false');
     path.chmod(0o600)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--loopback-port',type=int,default=8787);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--loopback-port',type=int,default=8787);parser.add_argument('--install-owner');args=parser.parse_args()
+    if args.install_owner and (len(args.install_owner)!=64 or any(c not in '0123456789abcdef' for c in args.install_owner)):raise ValueError('Ungueltige Installationskennung.')
     if not 1024<=args.loopback_port<=65535:raise ValueError('Ungueltiger interner Web-Port.')
     if os.geteuid()!=0:raise SystemExit('Host-Einrichtung benoetigt root.')
     guarded=[PROJECT.parent,CONFIG,Path('/opt/kiagent/executor'),Path('/var/lib/kiagent-executor'),Path('/usr/local/lib/kiagent-config'),Path('/var/lib/kiagent-web')]
@@ -51,13 +52,14 @@ def main():
     bot=account('kiagent');discord=account('kiagent-discord');web=account('kiagent-config');gid=grp.getgrnam('kiagent').gr_gid
     PROJECT.parent.mkdir(mode=0o755,parents=True,exist_ok=True)
     PROJECT.parent.chmod(0o755)
-    shutil.copytree(SOURCE,PROJECT,ignore=shutil.ignore_patterns('.git','__pycache__','.env','.env.*','.venv'))
+    shutil.copytree(SOURCE,PROJECT,ignore=shutil.ignore_patterns('.git','__pycache__','.env','.env.*','.venv','.installation'))
     for path in [PROJECT,*PROJECT.rglob('*')]:
         if path.is_symlink():raise ValueError('Symlink im Quellstand.')
         os.chown(path,0,0);path.chmod(0o755 if path.is_dir() else 0o644)
     compose_path=PROJECT/'compose.yaml'
-    compose_path.write_text(compose_path.read_text().replace("ports: ['127.0.0.1:8787:8080']","ports: ['127.0.0.1:"+str(args.loopback_port)+":8080']"))
+    compose_path.write_text((SOURCE/'compose.runtime.yaml').read_text().replace("ports: ['127.0.0.1:8787:8080']","ports: ['127.0.0.1:"+str(args.loopback_port)+":8080']"))
     CONFIG.mkdir(mode=0o700);(CONFIG/'secrets').mkdir(mode=0o700)
+    if args.install_owner:atomic(CONFIG/'first-install-owner',args.install_owner.encode(),0o600)
     env={'KIAGENT_UID':str(bot.pw_uid),'DISCORD_UID':str(discord.pw_uid),'KIAGENT_GID':str(gid),
          'CONFIG_UID':str(web.pw_uid),'CONFIG_GID':str(web.pw_gid),'DISCORD_APPLICATION_ID':'','KIAGENT_RAID_DEVICES':'',
          'KIAGENT_SECRETS_DIR':str(CONFIG/'secrets'),'CONFIG_ORIGIN':'http://127.0.0.1:'+str(args.loopback_port),'CONFIG_SETUP_LOCAL_ONLY':'1'}

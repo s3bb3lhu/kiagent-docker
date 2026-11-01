@@ -4,14 +4,14 @@ Installation & Einstieg · 1.3.0.1
 
 1. Die Vollinstallation ist für Ubuntu 26.04 amd64 mit systemd, mdadm, Docker Engine und Compose geprüft. Rootless Docker und UID-Remapping werden vom Host-Adapter nicht unterstützt. Bestehende RAID- und Alarmkonfiguration vorher prüfen.
 
-2. Neu: Die vollständige Einrichtung und der Start sind interaktiv mit docker compose -f compose.install.yaml run --rm --build installer möglich. Der ausdrücklich privilegierte Einmal-Installer richtet die festen Host-Agenten ein und wird danach entfernt. Frische Ubuntu-24.04-/26.04-amd64-Hosts werden geprüft; vorhandene Installationen werden nicht überschrieben. Nach dem Web-Start dort das Passwort festlegen und unter /settings/setup alle Dienst-IDs und Tokens eingeben. Die Webadresse wird nach automatischer IP-Erkennung ausgegeben; im Terminal gibt es keine Eingabeabfragen. Browser und SSH müssen denselben Internetzugang verwenden; Bots und Aktionen bleiben bis zur erfolgreichen Prüfung gesperrt. Bei belegten Web-Ports wird ein eigener freier HTTPS-Port ab 9443 mit gültigem vorhandenem IP-Zertifikat verwendet. Bestehende Dienste bleiben unverändert. Immer die ausgegebene URL verwenden. Zugang auf freien Hosts https://SERVER-IP:8443; TCP 80 und der gewählte Web-Port müssen erreichbar sein. Details im verlinkten Vollinstallations-Leitfaden.
+2. Erstinstallation auf dem aktuellen main-Zweig: docker compose up -d. Der privilegierte Setup-Container erkennt Adressen und Zertifikate, übernimmt ein gültiges vorhandenes IP-Zertifikat oder stellt auf einem freien Server eines aus. Die HTTPS-Adresse steht nach Abschluss in .installation/WEBADRESSE.txt und im Setup-Protokoll. Docker -d blendet spätere Ausgaben aus. Passwort und Dienstzugänge ausschließlich im Browser einrichten. Ein erneuter Start derselben Installation ist kein Update; andere Installationen werden nicht überschrieben. Unterstützt: Ubuntu 24.04/26.04 amd64 mit systemd und Docker. Browser und SSH verwenden denselben Internetzugang. Details im Erstinstallations-Leitfaden.
 
 3. Quellpaket herunterladen oder Repository klonen. Im Projektverzeichnis sudo python3 tools/install.py ausführen. Eigene Telegram-/Discord-Identitäten und Tokens im Terminal eingeben; OpenAI und Healthchecks sind optional. Zugangsdaten niemals in Clone-URLs oder Chats einfügen.
 
 4. Der Installer sichert und migriert eine kompatible Einrichtung. Ein vorhandenes Docker-Projekt wird nicht blind überschrieben. Host-Agenten bleiben außerhalb der Container. SSH-Zugang und RAID-Mitglieder werden nicht verändert. Danach /status und /automatik_status in beiden Bots prüfen.
 
 ```text
-docker compose -f compose.install.yaml run --rm --build installer
+docker compose up -d
 ```
 
 ```text
@@ -19,4 +19,4 @@ sudo python3 tools/install.py
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
-- [Vollinstallation per Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.1/FULL_COMPOSE.md)
+- [Vollinstallation per Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/main/FIRST_INSTALL.md)

@@ -4,14 +4,14 @@ Installation et premiers pas · 1.3.0.1
 
 1. L’installation complète est testée sur Ubuntu 26.04 amd64 avec systemd, mdadm, Docker Engine et Compose. L’adaptateur ne prend pas en charge Docker rootless ni le remappage des UID. Vérifiez d’abord le RAID et les alertes existantes.
 
-2. Nouveau : utilisez docker compose -f compose.install.yaml run --rm --build installer pour l’installation complète et le démarrage interactifs. Cet installateur explicitement privilégié configure les agents puis est supprimé. Les hôtes Ubuntu 24.04/26.04 amd64 neufs sont vérifiés ; aucune installation existante n’est écrasée. Après le démarrage web, définissez le mot de passe puis saisissez identifiants et tokens dans /settings/setup. L’adresse web est affichée après détection automatique des IP, sans question dans le terminal. Utilisez la même connexion Internet pour SSH et navigateur ; bots et actions restent bloqués jusqu’à validation. Si des services web existent, un port HTTPS libre à partir de 9443 et un certificat IP existant valide sont utilisés sans modifier les autres services. Utilisez l’URL affichée. Sur hôte libre : https://IP-SERVEUR:8443. TCP 80 et le port web choisi doivent être accessibles. Consultez le guide complet lié.
+2. Première installation depuis main : docker compose up -d. Le conteneur privilégié détecte adresses et certificats, réutilise un certificat IP valide ou en demande un sur hôte libre. L’URL HTTPS est écrite dans .installation/WEBADRESSE.txt et les journaux ; -d masque la sortie ultérieure. Mot de passe et accès fournisseurs se règlent dans le navigateur. Redémarrer la même installation ne constitue pas une mise à jour ; les autres installations restent inchangées. Ubuntu 24.04/26.04 amd64 avec systemd et Docker. Utilisez la même connexion pour navigateur et SSH. Consultez le guide initial.
 
 3. Téléchargez les sources ou clonez le dépôt. Exécutez sudo python3 tools/install.py dans son répertoire. Saisissez vos identifiants et tokens Telegram/Discord dans le terminal ; OpenAI et Healthchecks sont facultatifs. Ne placez jamais de secrets dans une URL de clonage ou un chat.
 
 4. L’installateur sauvegarde et migre une installation compatible. Il n’écrase pas aveuglément un projet Docker existant. Les agents restent hors des conteneurs. SSH et les membres RAID sont préservés. Vérifiez ensuite /status et /automatik_status dans les deux bots.
 
 ```text
-docker compose -f compose.install.yaml run --rm --build installer
+docker compose up -d
 ```
 
 ```text
@@ -19,4 +19,4 @@ sudo python3 tools/install.py
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
-- [Installation complète avec Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/v1.3.0.1/FULL_COMPOSE.md)
+- [Installation complète avec Compose](https://github.com/s3bb3lhu/kiagent-docker/blob/main/FIRST_INSTALL.md)

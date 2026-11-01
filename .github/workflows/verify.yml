@@ -16,6 +16,7 @@ jobs:
         run: python3 -B tools/release_check.py
       - name: Validate release Compose files
         run: |
+          docker compose config --quiet
           docker compose -f compose.quickstart.yaml config --quiet
           docker compose -f compose.portable.yaml config --quiet
           docker compose -f compose.install.yaml config --quiet
@@ -29,3 +30,12 @@ jobs:
         run: sudo docker compose -f compose.install.yaml run --rm --build -T installer --check
       - name: Exercise fresh web-first installation without provider credentials
         run: sudo --preserve-env=GITHUB_ACTIONS python3 tools/test_browser_bootstrap.py
+  plain-compose-first-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Exercise exact default Compose installation and repeat without updating
+        run: sudo --preserve-env=GITHUB_ACTIONS python3 tools/exercise_default_compose.py

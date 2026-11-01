@@ -121,7 +121,8 @@ def main():
                     removed.append((path, path.read_bytes(), stat.S_IMODE(path.stat().st_mode)))
                     path.unlink()
         PROJECT.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
-        shutil.copytree(SOURCE, PROJECT, ignore=shutil.ignore_patterns('.git','__pycache__','.env','.venv'))
+        shutil.copytree(SOURCE, PROJECT, ignore=shutil.ignore_patterns('.git','__pycache__','.env','.venv','.installation'))
+        shutil.copyfile(SOURCE/'compose.runtime.yaml',PROJECT/'compose.yaml')
         for path in [PROJECT, *PROJECT.rglob('*')]:
             if path.is_symlink():
                 raise ValueError('Projekt darf keine Symlinks enthalten')

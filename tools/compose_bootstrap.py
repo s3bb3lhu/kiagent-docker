@@ -36,6 +36,22 @@ def host_probe():
     result=subprocess.run(NAMESPACE+['/usr/bin/python3','-I','-B','-c',PROBE],check=True,capture_output=True,text=True,timeout=30,env=child_env())
     return validate_host(json.loads(result.stdout))
 
+def ensure_host_python():
+    # Fixed shell program, no interpolated user data. --check never invokes this.
+    script='''cd / || exit 1
+if [ -x /usr/bin/python3 ] && [ -x /usr/bin/openssl ]; then exit 0; fi
+if [ -e /etc/kiagent-docker ] || [ -e /opt/kiagent-docker/project ]; then
+  echo 'Vorhandene Einrichtung: fehlende Host-Werkzeuge manuell pruefen.' >&2; exit 1
+fi
+. /etc/os-release
+case "$ID:$VERSION_ID" in ubuntu:24.04|ubuntu:26.04) ;; *) exit 1 ;; esac
+export DEBIAN_FRONTEND=noninteractive
+/usr/bin/apt-get update || exit 1
+if [ ! -x /usr/bin/python3 ]; then /usr/bin/apt-get install -y --no-install-recommends python3 || exit 1; fi
+if [ ! -x /usr/bin/openssl ]; then /usr/bin/apt-get install -y --no-install-recommends openssl || exit 1; fi
+'''
+    subprocess.run(NAMESPACE+['/bin/sh','-c',script],check=True,env=child_env(),timeout=600)
+
 def parameters(address,admin_ip,port):
     address=str(ipaddress.IPv4Address(address));admin_ip=str(ipaddress.ip_address(admin_ip));port=int(port)
     if not ipaddress.ip_address(address).is_global:raise ValueError('Fuer vertrauenswuerdiges HTTPS wird eine oeffentliche IPv4-Adresse benoetigt.')
@@ -63,9 +79,14 @@ def stage_payload(payload=PAYLOAD,host=HOST):
     return '/'+str(stage.relative_to(host))
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');parser.add_argument('--resume-network',action='store_true');parser.add_argument('--web-only',action='store_true',help='Loopback-only web bootstrap for isolated tests; no HTTPS or provider credentials.');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');parser.add_argument('--resume-network',action='store_true');parser.add_argument('--detached',action='store_true');parser.add_argument('--web-only',action='store_true',help='Loopback-only web bootstrap for isolated tests; no HTTPS or provider credentials.');args=parser.parse_args()
     os.umask(0o077)
+    if args.detached:ensure_host_python()
     facts=host_probe()
+    if args.detached:
+        if args.check or args.resume_network or args.web_only:raise ValueError('Unzulaessige Kombination der Installationsmodi.')
+        from unattended_bootstrap import run
+        run(host_probe,stage_payload,NAMESPACE,child_env);return
     if args.check:
         print(json.dumps({'result':'ready','host':facts,'host_files_changed':False}));return
     if not args.resume_network and (facts['installed'] or facts['configured']):raise SystemExit('Vorhandene Installation erkannt. Kein Ueberschreiben; fuer Migration zuerst gesondert pruefen.')

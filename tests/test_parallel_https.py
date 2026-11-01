@@ -18,7 +18,7 @@ class ParallelHttpsTests(unittest.TestCase):
             self.assertEqual(listener.getsockname()[1],port)
 
     def test_compose_changes_only_the_new_web_service(self):
-        text=(ROOT/'compose.yaml').read_text()
+        text=(ROOT/'compose.runtime.yaml').read_text()
         rendered=tls.render_compose(text,8787,9443)
         before=text.split('  config-web:',1)[0];after=rendered.split('  config-web:',1)[0]
         self.assertEqual(before,after)
