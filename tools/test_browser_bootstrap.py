@@ -46,6 +46,8 @@ def main():
         containers=subprocess.check_output(['docker','ps','--filter','label=com.docker.compose.project=kiagent','--format','{{.Label "com.docker.compose.service"}}'],text=True).splitlines()
         assert containers==['config-web'],containers
         print('Actual web-first host bootstrap: password setup, combined wizard, empty provider secrets, disabled bots/agents/actions: OK')
+        from exercise_parallel_https import exercise
+        exercise()
     except Exception:
         # Fixed status fields only: never export application logs or environment.
         subprocess.run(['systemctl','show','kiagent-docker','kiagent-config','-p','Id','-p','ActiveState','-p','Result','-p','ExecMainStatus'],check=False)

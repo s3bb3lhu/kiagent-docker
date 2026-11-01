@@ -12,6 +12,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 from install_web import SOURCE,PROJECT,CONFIG,atomic
 from install_https import origin_for,web_port
 from network_defaults import discover
+import parallel_https
 MARKER=CONFIG/'compose-install.json'
 
 def marker_read():
@@ -19,7 +20,7 @@ def marker_read():
     if MARKER.is_symlink() or info.st_uid!=0 or info.st_mode & 0o077:raise ValueError('Unsicherer Installationsnachweis.')
     data=json.loads(MARKER.read_text())
     if data.get('kind')!='compose-host-install-v1':raise ValueError('Unbekannter Installationsnachweis.')
-    for name in ('tools/host_compose_install.py','tools/install_https.py'):
+    for name in ('tools/host_compose_install.py','tools/install_https.py','tools/parallel_https.py'):
         if hashlib.sha256((SOURCE/name).read_bytes()).digest()!=hashlib.sha256((PROJECT/name).read_bytes()).digest():raise ValueError('Installierter Quellstand weicht ab; keine automatische Netzwerkwiederholung.')
     return data
 
@@ -28,6 +29,7 @@ def main():
     if os.geteuid()!=0:raise SystemExit('Host-Installation benoetigt root.')
     if args.resume_network:
         prior=marker_read();address=prior['address'];admin=prior['admin_ip']
+        args.port=prior.get('port',args.port)
     elif args.address and args.admin_ip:address,admin=args.address,args.admin_ip
     else:address,admin=discover(args.ssh_connection)
     address=str(ipaddress.IPv4Address(address));admin=str(ipaddress.ip_address(admin));origin=origin_for(address,args.port)
@@ -39,14 +41,22 @@ def main():
     else:
         if PROJECT.exists() or CONFIG.exists():raise SystemExit('Bestehende Installation wird nicht ueberschrieben.')
         listeners=subprocess.check_output(['/usr/bin/ss','-H','-lnt'],text=True)
-        if any(line.split()[3].endswith((':80',':'+str(args.port),':8787')) for line in listeners.splitlines()):raise SystemExit('Ein benoetigter Port ist belegt. Keine Installation gestartet.')
-        if Path('/etc/nginx').exists():raise SystemExit('Bestehende nginx-Installation zuerst pruefen. Keine automatische Uebernahme.')
+        parallel=Path('/etc/nginx').exists() or any(line.split()[3].endswith((':80',':'+str(args.port),':8787')) for line in listeners.splitlines())
+        certificate=parallel_https.discover(address) if parallel else None
+        loopback=parallel_https.free_port(18787,host='127.0.0.1') if parallel else 8787
+        if parallel:
+            args.port=parallel_https.free_port(max(9443,args.port),excluded=(loopback,8787))
+            origin=origin_for(address,args.port)
+            print('Parallelbetrieb: eigener HTTPS-Port '+str(args.port)+'. Vorhandene Dienste bleiben unveraendert.')
         # Only internal session material is generated; provider credentials come from the browser.
-        subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py')],check=True)
-        state={'kind':'compose-host-install-v1','origin':origin,'address':address,'admin_ip':admin,'network_ready':False}
+        subprocess.run(['/usr/bin/python3','-I','-B',str(SOURCE/'tools/install_browser_host.py'),'--loopback-port',str(loopback)],check=True)
+        state={'kind':'compose-host-install-v1','origin':origin,'address':address,'admin_ip':admin,'port':args.port,'parallel':parallel,'loopback_port':loopback,'certificate':certificate,'network_ready':False}
         atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     try:
-        subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port),'--unattended'],check=True)
+        if state.get('parallel'):
+            parallel_https.configure(address,admin,args.port,state['loopback_port'],state['certificate'])
+        else:
+            subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_https.py'),'--address',address,'--admin-ip',admin,'--port',str(args.port),'--unattended'],check=True)
     except BaseException:
         print('Die Web-Grundinstallation ist vorhanden; Bots warten weiter auf Browser-Einrichtung. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
         raise

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0.0 — 2026-11-01
+
+- Add isolated HTTPS co-location on an automatically selected free port from 9443, leaving existing proxies, containers and port 8787 unchanged.
+- Reuse validated existing IP certificates through root-only copies; synchronize renewals without reloading the original proxy.
+- Discover certificate roots from bind-mount metadata without reading container environments.
+- Fix application validation of custom HTTPS ports and add actual TLS co-location CI coverage.
+
+
 ## 1.2.0.1 — 2026-11-01
 
 - Remove terminal IP and certificate confirmation prompts from the standard Compose installer.

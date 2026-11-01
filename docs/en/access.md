@@ -1,6 +1,6 @@
 # Sign-in, password and HTTPS
 
-Settings and connections · 1.2.0.1
+Settings and connections · 1.3.0.0
 
 1. Open /setup for first setup. There is no default password or setup code. Use at least 8 characters including an uppercase letter, a number and a special character, with no whitespace. Public HTTPS first setup is restricted to the administrator IP.
 

@@ -1,6 +1,6 @@
 # Anmeldung, Passwort & HTTPS
 
-Einstellungen & Verbindungen · 1.2.0.1
+Einstellungen & Verbindungen · 1.3.0.0
 
 1. Bei der ersten Einrichtung /setup öffnen. Es gibt kein Standardpasswort und keinen Einrichtungscode. Mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen; keine Leerzeichen. Bei öffentlichem HTTPS ist die Ersteinrichtung auf die Administrator-IP beschränkt.
 

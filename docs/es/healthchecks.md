@@ -1,6 +1,6 @@
 # Healthchecks: señales y alertas
 
-Ajustes y conexiones · 1.2.0.1
+Ajustes y conexiones · 1.3.0.0
 
 1. Crea checks separados para servidor y bot en Healthchecks. Copia sus URLs de ping UUID y asígnalas en Ajustes → Healthchecks. Se necesitan URLs de ping, no una clave API de gestión.
 

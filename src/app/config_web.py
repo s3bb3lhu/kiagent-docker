@@ -80,7 +80,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
     origin = origin or os.environ.get('CONFIG_ORIGIN','http://127.0.0.1:8787')
     parsed = urlsplit(origin)
     loopback = parsed.scheme == 'http' and parsed.hostname == '127.0.0.1' and parsed.port is not None
-    public_tls = parsed.scheme == 'https' and bool(parsed.hostname) and parsed.port in (None,443)
+    public_tls = parsed.scheme == 'https' and bool(parsed.hostname) and (parsed.port in (None,443) or 1024<=parsed.port<=65535 and parsed.port!=8787)
     if not (loopback or public_tls) or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
         raise ValueError('Explicit loopback or HTTPS origin required')
     app = Flask(__name__)

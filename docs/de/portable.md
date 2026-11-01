@@ -1,6 +1,6 @@
 # Docker unter Linux & Windows
 
-Installation & Einstieg · 1.2.0.1
+Installation & Einstieg · 1.3.0.0
 
 1. Die portable Variante benötigt Linux-Container. Unter Windows Server ist eine Linux-VM mit Docker Engine erforderlich; native Windows-Container und Windows-Hostaktionen sind nicht implementiert. Ein Windows-PC benötigt eine vom Hersteller unterstützte Linux-Container-Umgebung.
 

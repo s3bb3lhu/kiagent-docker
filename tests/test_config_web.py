@@ -44,6 +44,20 @@ class WebTests(unittest.TestCase):
         self.assertEqual(self.get('/api/overview').status_code,401)
         self.assertFalse(self.calls)
 
+    def test_custom_https_ports_keep_secure_cookies_and_setup_ip_restriction(self):
+        root=Path(self.temporary.name)
+        AuthStore(root/'auth').reset()
+        for port in (8443,9443,9444):
+            origin='https://8.8.8.8:'+str(port)
+            app=create_app(root,lambda request:{'ok':True},origin,state_dir=root/'auth',setup_ip='203.0.113.5')
+            client=app.test_client()
+            response=client.get('/setup',base_url=origin,environ_overrides={'REMOTE_ADDR':'203.0.113.5'})
+            self.assertEqual(response.status_code,200)
+            self.assertIn('Secure',response.headers.get('Set-Cookie',''))
+            self.assertEqual(client.get('/setup',base_url=origin).status_code,403)
+        for port in (22,80,8787):
+            with self.assertRaises(ValueError):create_app(root,lambda request:{},'https://8.8.8.8:'+str(port),state_dir=root/'auth')
+
     def test_login_logout_and_cookie_flags(self):
         response = self.login()
         self.assertEqual(response.status_code,302)

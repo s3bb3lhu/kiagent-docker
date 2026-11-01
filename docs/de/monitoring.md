@@ -1,6 +1,6 @@
 # RAID-Überwachung & Automatik
 
-Einstellungen & Verbindungen · 1.2.0.1
+Einstellungen & Verbindungen · 1.3.0.0
 
 1. Unter Einstellungen → Überwachung nur vorhandene md-Gerätenamen wie md4 eintragen. RAID-Mitglieder, Partitionen und Synchronisation werden nicht verändert. Ein Resync bei degraded=0 ist kein Nachweis eines Plattenausfalls.
 

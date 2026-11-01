@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fresh web-first installation: no provider credential input, no bots until onboarding."""
 import grp
+import argparse
 import hashlib
 import json
 import os
@@ -38,6 +39,8 @@ INSERT INTO settings VALUES('auto_enabled','false');
     path.chmod(0o600)
 
 def main():
+    parser=argparse.ArgumentParser();parser.add_argument('--loopback-port',type=int,default=8787);args=parser.parse_args()
+    if not 1024<=args.loopback_port<=65535:raise ValueError('Ungueltiger interner Web-Port.')
     if os.geteuid()!=0:raise SystemExit('Host-Einrichtung benoetigt root.')
     guarded=[PROJECT.parent,CONFIG,Path('/opt/kiagent/executor'),Path('/var/lib/kiagent-executor'),Path('/usr/local/lib/kiagent-config'),Path('/var/lib/kiagent-web')]
     if any(path.exists() or path.is_symlink() for path in guarded):raise SystemExit('Bestehende Einrichtung erkannt. Keine automatische Uebernahme.')
@@ -52,10 +55,12 @@ def main():
     for path in [PROJECT,*PROJECT.rglob('*')]:
         if path.is_symlink():raise ValueError('Symlink im Quellstand.')
         os.chown(path,0,0);path.chmod(0o755 if path.is_dir() else 0o644)
+    compose_path=PROJECT/'compose.yaml'
+    compose_path.write_text(compose_path.read_text().replace("ports: ['127.0.0.1:8787:8080']","ports: ['127.0.0.1:"+str(args.loopback_port)+":8080']"))
     CONFIG.mkdir(mode=0o700);(CONFIG/'secrets').mkdir(mode=0o700)
     env={'KIAGENT_UID':str(bot.pw_uid),'DISCORD_UID':str(discord.pw_uid),'KIAGENT_GID':str(gid),
          'CONFIG_UID':str(web.pw_uid),'CONFIG_GID':str(web.pw_gid),'DISCORD_APPLICATION_ID':'','KIAGENT_RAID_DEVICES':'',
-         'KIAGENT_SECRETS_DIR':str(CONFIG/'secrets'),'CONFIG_ORIGIN':'http://127.0.0.1:8787','CONFIG_SETUP_LOCAL_ONLY':'1'}
+         'KIAGENT_SECRETS_DIR':str(CONFIG/'secrets'),'CONFIG_ORIGIN':'http://127.0.0.1:'+str(args.loopback_port),'CONFIG_SETUP_LOCAL_ONLY':'1'}
     atomic(CONFIG/'deployment.env',('\n'.join(k+'='+v for k,v in env.items())+'\n').encode(),0o600)
     for name in ('telegram-token','discord-token','openai-api-key','hc-bot','hc-server','allowed-users'):atomic(CONFIG/'secrets'/name,b'',0o440,gid)
     atomic(CONFIG/'secrets/discord-access.json',b'{"users":[],"guild_id":"","channel_id":""}\n',0o440,gid)
