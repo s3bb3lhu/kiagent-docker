@@ -4,5 +4,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends util-linux && rm -rf /var/lib/apt/lists/*
 WORKDIR /payload
 COPY . /payload/
+RUN python -I -B /payload/tools/release_check.py
 USER 0:0
 ENTRYPOINT ["python", "-I", "-B", "/payload/tools/compose_bootstrap.py"]
