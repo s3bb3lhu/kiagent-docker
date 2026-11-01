@@ -2,7 +2,7 @@
 
 Operation and maintenance · 1.0.0.0
 
-1. The product version appears at the bottom of the menu. Version 1.0.0.0 is prepared for the first release. Updates are explicitly installed from reviewed source; there is no unattended self-update. Check open/uncertain jobs and backups first.
+1. The product version appears at the bottom of the menu. This first release is version 1.0.0.0. Updates are explicitly installed from reviewed source; there is no unattended self-update. Check open/uncertain jobs and backups first.
 
 2. On an existing managed installation run tools/install_ui.py from the prepared source with sudo. It tests in isolation, backs up code/images and checks restart. Credentials, password, history and lock times are preserved. Afterwards reload the browser with Ctrl+F5.
 

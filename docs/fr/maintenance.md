@@ -2,7 +2,7 @@
 
 Exploitation et maintenance · 1.0.0.0
 
-1. La version apparaît en bas du menu. La version 1.0.0.0 est préparée pour la première publication. Les mises à jour s’installent explicitement depuis des sources vérifiées ; aucune mise à jour autonome. Vérifiez d’abord tâches ouvertes/incertaines et sauvegardes.
+1. La version apparaît en bas du menu. Cette première publication porte la version 1.0.0.0. Les mises à jour s’installent explicitement depuis des sources vérifiées ; aucune mise à jour autonome. Vérifiez d’abord tâches ouvertes/incertaines et sauvegardes.
 
 2. Sur une installation gérée existante, lancez tools/install_ui.py depuis les sources préparées avec sudo. Il teste isolément, sauvegarde code/images et vérifie le redémarrage. Secrets, mot de passe, historique et délais sont conservés. Rechargez avec Ctrl+F5.
 

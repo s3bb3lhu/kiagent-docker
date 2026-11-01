@@ -1,0 +1,36 @@
+# Server Control 1.0.0.0 — portable configuration portal.
+# Build from the downloaded/cloned release directory; no prebuilt registry image required.
+# This variant has no host adapter and does not start Telegram/Discord bots.
+name: server-control-portal
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.portable
+    image: server-control-portal:1.0.0.0
+    user: '10001:10001'
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 192m
+    tmpfs: [/tmp:rw,noexec,nosuid,size=16m,mode=1777]
+    ports: ['127.0.0.1:8787:8080']
+    environment:
+      CONFIG_ORIGIN: http://127.0.0.1:8787
+      CONFIG_SETUP_LOCAL_ONLY: '1'
+      CONFIG_SETUP_ALLOWED_IP: 127.0.0.1
+      CONFIG_SETUP_PROXY: '0'
+    volumes: [portal-state:/var/lib/kiagent-web]
+    healthcheck:
+      test: [CMD, python, -B, /app/config_web_health.py]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: {max-size: 5m, max-file: '3'}
+volumes:
+  portal-state:
