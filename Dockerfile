@@ -5,5 +5,6 @@ WORKDIR /app
 COPY requirements.lock /build/requirements.lock
 RUN python -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r /build/requirements.lock
 COPY src/app/ /app/
+RUN chmod -R a+rX /app
 USER 10001:10001
 CMD ["python", "-B", "/app/bot.py"]
