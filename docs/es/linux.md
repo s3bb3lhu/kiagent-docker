@@ -6,16 +6,16 @@ Instalación y primeros pasos · 1.5.0.0
 
 2. Primera instalación con el asistente de main: docker compose up -d. La aplicación se descarga de la última versión estable publicada en GitHub, sin versiones previas ni alternativa local antigua. Versión y commit figuran en .installation/version.json. El contenedor privilegiado detecta direcciones y certificados, reutiliza un certificado IP válido o solicita uno en un servidor libre. La URL HTTPS aparece en .installation/WEBADRESSE.txt y en los registros; -d oculta la salida posterior. Contraseña y accesos se configuran solo en el navegador. Reiniciar la misma instalación no es actualizar; no se sobrescriben otras instalaciones. Ubuntu 24.04/26.04 amd64 con systemd y Docker. Usa la misma conexión para navegador y SSH. Consulta la guía de primera instalación.
 
-3. Descarga el código o clona el repositorio. Ejecuta sudo python3 tools/install.py en su directorio. Introduce tus identidades y tokens de Telegram/Discord en la terminal; OpenAI y Healthchecks son opcionales. No pongas credenciales en URLs de clonación ni chats.
+3. Clona el repositorio y ejecuta docker compose up -d. Las direcciones quedan en .installation. Crea usuario y contraseña en el navegador, sin token de instalación. Añade después IDs y claves en la página, nunca en el chat.
 
-4. El instalador respalda y migra una configuración compatible. No sobrescribe a ciegas un proyecto Docker existente. Los agentes permanecen fuera de los contenedores. No modifica SSH ni miembros RAID. Después comprueba /status y /automatik_status en ambos bots.
+4. El instalador no adopta proyectos ajenos ni actualiza instalaciones existentes automáticamente. Los contenedores web no son privilegiados; los agentes fijos quedan fuera. Conserva SSH y RAID. Comprueba los bots tras configurarlos.
 
 ```text
 docker compose up -d
 ```
 
 ```text
-sudo python3 tools/install.py
+docker compose up -d
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)

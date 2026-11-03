@@ -6,16 +6,16 @@ Installation & Einstieg · 1.5.0.0
 
 2. Erstinstallation mit dem Helfer auf main: docker compose up -d. Die Anwendung wird dabei immer aus dem neuesten veröffentlichten stabilen GitHub-Release geladen, ohne Vorabversionen oder Rückfall auf einen alten lokalen Stand. Version und Commit stehen in .installation/version.json. Der privilegierte Setup-Container erkennt Adressen und Zertifikate, übernimmt ein gültiges vorhandenes IP-Zertifikat oder stellt auf einem freien Server eines aus. Die HTTPS-Adresse steht nach Abschluss in .installation/WEBADRESSE.txt und im Setup-Protokoll. Docker -d blendet spätere Ausgaben aus. Passwort und Dienstzugänge ausschließlich im Browser einrichten. Ein erneuter Start derselben Installation ist kein Update; andere Installationen werden nicht überschrieben. Unterstützt: Ubuntu 24.04/26.04 amd64 mit systemd und Docker. Browser und SSH verwenden denselben Internetzugang. Details im Erstinstallations-Leitfaden.
 
-3. Quellpaket herunterladen oder Repository klonen. Im Projektverzeichnis sudo python3 tools/install.py ausführen. Eigene Telegram-/Discord-Identitäten und Tokens im Terminal eingeben; OpenAI und Healthchecks sind optional. Zugangsdaten niemals in Clone-URLs oder Chats einfügen.
+3. Repository klonen und im Projektverzeichnis docker compose up -d ausführen. Die Webadressen stehen unter .installation. Dort Benutzername und Passwort setzen, ohne Einrichtungstoken. Bot-IDs und API-Keys erst später auf der Seite eingeben, niemals im Chat.
 
-4. Der Installer sichert und migriert eine kompatible Einrichtung. Ein vorhandenes Docker-Projekt wird nicht blind überschrieben. Host-Agenten bleiben außerhalb der Container. SSH-Zugang und RAID-Mitglieder werden nicht verändert. Danach /status und /automatik_status in beiden Bots prüfen.
+4. Der Erstinstaller übernimmt keine fremden Projekte und aktualisiert bestehende Installationen nicht automatisch. Die Webcontainer bleiben unprivilegiert; feste Host-Agenten laufen außerhalb. SSH und RAID-Mitglieder bleiben erhalten. Bots erst nach ihrer Konfiguration prüfen.
 
 ```text
 docker compose up -d
 ```
 
 ```text
-sudo python3 tools/install.py
+docker compose up -d
 ```
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
