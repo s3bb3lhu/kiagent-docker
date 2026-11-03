@@ -24,12 +24,12 @@ if phase=='setup':
  page=get('/setup').read().decode()
  assert 'name="code"' not in page
  token=re.search(r'name="csrf" value="([^"]+)"',page)[1]
- get('/setup',{'csrf':token,'password':'Fixture1!','repeat':'Fixture1!'})
+ get('/setup',{'csrf':token,'username':'admin','password':'Fixture1!','repeat':'Fixture1!'})
 else:
  page=get('/login').read().decode()
  assert 'name="repeat"' not in page
  token=re.search(r'name="csrf" value="([^"]+)"',page)[1]
- get('/login',{'csrf':token,'password':'Fixture1!'})
+ get('/login',{'csrf':token,'username':'admin','password':'Fixture1!'})
 view=json.load(get('/api/overview'))
 assert view['ok'] and 'capability_notice' in view and not any(view['configured'].values())
 print('Portable '+phase+': OK')
