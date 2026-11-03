@@ -1,6 +1,6 @@
 # Supervisión RAID y automatización
 
-Ajustes y conexiones · 1.4.0.0
+Ajustes y conexiones · 1.5.0.0
 
 1. En Ajustes → Supervisión introduce dispositivos md existentes, por ejemplo md4. No cambia miembros RAID, particiones ni sincronización. Un resync con degraded=0 no prueba un fallo de disco.
 

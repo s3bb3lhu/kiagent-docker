@@ -94,7 +94,8 @@ def copy_regular(source,target):
 def sources():
     selected=set()
     optional=tuple(path for path in (Path('/etc/letsencrypt/accounts'),Path('/etc/letsencrypt/archive'),Path('/etc/letsencrypt/renewal')) if path.exists())
-    for directory in DIRECTORIES+optional:
+    services=tuple(path for path in (Path('/etc/kiagent-services'),Path('/var/lib/kiagent-services'),Path('/usr/local/lib/kiagent-services')) if path.exists())
+    for directory in DIRECTORIES+optional+services:
         secure(directory,directory=True)
         for root,dirs,files in os.walk(directory,followlinks=False):
             base=Path(root);secure(base,directory=True)

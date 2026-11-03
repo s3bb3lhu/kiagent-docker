@@ -196,3 +196,10 @@ ROWS.update({
 'insufficient_resources':('Zu wenig freier RAM oder Speicherplatz für eine sichere automatische Ollama-Installation.','Insufficient free RAM or disk for safe automatic Ollama installation.','RAM o disco libre insuficientes para instalar Ollama de forma segura.','RAM ou espace disque libre insuffisant pour installer Ollama en sécurité.'),
 'ai_resource_limits':('CPU: {cpu} Kerne · RAM: {ram} MiB · Kontext: {context} · Ausgabe: maximal {tokens} Tokens','CPU: {cpu} cores · RAM: {ram} MiB · Context: {context} · Output: maximum {tokens} tokens','CPU: {cpu} núcleos · RAM: {ram} MiB · Contexto: {context} · Salida: máximo {tokens} tokens','CPU : {cpu} cœurs · RAM : {ram} MiB · Contexte : {context} · Sortie : maximum {tokens} tokens')
 })
+
+ROWS.update({
+'username':('Benutzername','Username','Usuario','Identifiant'),
+'username_policy':('3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich.','3–32 characters: letters, numbers, period, underscore or hyphen.','De 3 a 32 caracteres: letras, números, punto, guion bajo o guion.','3 à 32 caractères : lettres, chiffres, point, trait de soulignement ou tiret.')
+})
+
+ROWS.update({'services_portal':('Dienste & Container','Services & containers','Servicios y contenedores','Services et conteneurs')})

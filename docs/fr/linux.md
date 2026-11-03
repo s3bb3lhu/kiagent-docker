@@ -1,6 +1,6 @@
 # Installation Linux complète
 
-Installation et premiers pas · 1.4.0.0
+Installation et premiers pas · 1.5.0.0
 
 1. L’installation complète est testée sur Ubuntu 26.04 amd64 avec systemd, mdadm, Docker Engine et Compose. L’adaptateur ne prend pas en charge Docker rootless ni le remappage des UID. Vérifiez d’abord le RAID et les alertes existantes.
 

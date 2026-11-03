@@ -29,6 +29,10 @@ def main():
         '--security-opt','no-new-privileges','--tmpfs','/tmp:rw,mode=1777',
         '-v',str(ROOT)+':/workspace:ro','-w','/workspace','--entrypoint','python',
         IMAGE,'-B','-m','unittest','discover','-s','tests','-v')
+    run('/usr/bin/docker','run','--rm','--network','none','--read-only','--cap-drop','ALL',
+        '--security-opt','no-new-privileges','--tmpfs','/tmp:rw,mode=1777',
+        '-v',str(ROOT)+':/workspace:ro','-w','/workspace','--entrypoint','python',
+        IMAGE,'-B','services/test_services.py')
     uid = pwd.getpwnam('kiagent').pw_uid
     gid = grp.getgrnam('kiagent').gr_gid
     fixture = {'cpu_count':17,'ram_total_mib':64000,'ram_available_mib':63000,

@@ -1,6 +1,6 @@
 # Instalación completa en Linux
 
-Instalación y primeros pasos · 1.4.0.0
+Instalación y primeros pasos · 1.5.0.0
 
 1. La instalación completa está probada en Ubuntu 26.04 amd64 con systemd, mdadm, Docker Engine y Compose. El adaptador no admite Docker rootless ni reasignación de UID. Revisa primero RAID y las alertas existentes.
 

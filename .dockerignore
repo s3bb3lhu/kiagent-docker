@@ -41,3 +41,6 @@
 !tests/*.py
 
 !OLLAMA.md
+!SERVICES_PORTAL.md
+!services/
+!services/**

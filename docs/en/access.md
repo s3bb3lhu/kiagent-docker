@@ -1,8 +1,8 @@
 # Sign-in, password and HTTPS
 
-Settings and connections · 1.4.0.0
+Settings and connections · 1.5.0.0
 
-1. Open /setup for first setup. There is no default password or setup code. Use at least 8 characters including an uppercase letter, a number and a special character, with no whitespace. Public HTTPS first setup is restricted to the administrator IP.
+1. Open /setup for first setup and choose a username and password. There is no default password or setup code. Usernames use 3–32 letters, numbers, periods, underscores or hyphens. Use at least 8 characters including an uppercase letter, a number and a special character, with no whitespace. Public HTTPS first setup is restricted to the administrator IP.
 
 2. Settings → Change password requires the current password. A change invalidates existing sessions. A forgotten password needs an administrative reset through existing server access; see DISTRIBUTION.md. Allow cookies for this site.
 

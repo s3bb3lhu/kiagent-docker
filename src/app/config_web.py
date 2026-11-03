@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from flask import Flask, abort, jsonify, redirect, render_template as original_render, request, session, url_for
 from werkzeug.exceptions import HTTPException
-from web_auth import AuthStore,POLICY,valid_password
+from web_auth import AuthStore,POLICY,valid_password,valid_username
 from web_i18n import LANGUAGES,catalog
 from release_version import VERSION
 from user_docs import categories,documents
@@ -29,7 +29,7 @@ def render_template(name,**values):
     if name in modes:
         values['auth_mode']=modes[name]
         error=values.get('error','') or ''
-        values['error_key']='too_many' if 'viele' in error else 'password_mismatch' if 'überein' in error else 'wrong_password' if 'Passwort stimmt' in error else 'password_policy' if 'Mindestens' in error else 'validation'
+        values['error_key']='too_many' if 'viele' in error else 'password_mismatch' if 'überein' in error else 'wrong_password' if 'Passwort stimmt' in error else 'password_policy' if 'Mindestens' in error else 'username_policy' if 'Benutzername' in error else 'validation'
         values['page_active']='setup' if values['auth_mode']=='setup' else 'password_change' if values['auth_mode']=='password' else 'login'
         name='dashboard_auth.html'
     return original_render(name,**values)
@@ -108,7 +108,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
         lang=language();words=catalog(lang)
         return {'lang':lang,'ui':words,'t':lambda key:words.get(key,key),'languages':LANGUAGES,'version':VERSION,
                 'theme':request.cookies.get('kiagent_theme','light') if request.cookies.get('kiagent_theme') in {'light','dark'} else 'light',
-                'csrf':csrf(),'public_address':origin,'auth_mode':None,
+                'csrf':csrf(),'public_address':origin,'auth_mode':None,'username_enabled':bool(auth.read().get('username')),'services_origin':os.environ.get('CONFIG_SERVICES_ORIGIN',''),
                 'design':request.cookies.get('kiagent_design','ruby') if request.cookies.get('kiagent_design') in {'ruby','glass'} else 'ruby',
                 'accent':request.cookies.get('kiagent_accent','red') if request.cookies.get('kiagent_accent') in {'red','blue','green','purple','anthracite'} else 'red',
                 'menu_collapsed':request.cookies.get('kiagent_menu')=='collapsed'}
@@ -180,7 +180,7 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
                 return render_template('config_login.html',csrf=csrf(),error='Zu viele Versuche. Bitte eine Minute warten.'),429
             password = request.form.get('password','')
             current=auth.read()
-            if auth.verify(password,current):
+            if auth.verify(password,current) and ('username' not in current or request.form.get('username')==current['username']):
                 with rate_lock:
                     failures.clear()
                 session.clear()
@@ -210,10 +210,12 @@ def create_app(credentials=None,backend=exchange,origin=None,state_dir=None,setu
             if limited_attempt():
                 return render_template('config_password.html',setup=True,csrf=csrf(),policy=POLICY,error='Zu viele Versuche. Bitte eine Minute warten.'),429
             password=request.form.get('password','')
-            if not valid_password(password):error=POLICY
+            username=request.form.get('username','')
+            if not valid_username(username):error='Benutzername: 3–32 Zeichen, Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich.'
+            elif not valid_password(password):error=POLICY
             elif password!=request.form.get('repeat'):error='Die Passwörter stimmen nicht überein.'
             else:
-                epoch=auth.set_password(password,setup=True)
+                epoch=auth.set_password(password,setup=True,username=username)
                 if epoch:
                     session.clear()
                     session.permanent=True

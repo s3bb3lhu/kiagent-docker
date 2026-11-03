@@ -134,7 +134,7 @@ def provision(limits,data=Path('/var/lib/kiagent-ollama')):
 
 def enable_mounts(text):
     if 'KIAGENT_AI_ENABLED:' not in text:
-        anchor="    PYTHONDONTWRITEBYTECODE: '1'"
+        anchor="\n    PYTHONDONTWRITEBYTECODE: '1'"
         if text.count(anchor)!=1:raise ValueError('Unknown runtime environment')
         text=text.replace(anchor,anchor+"\n    KIAGENT_AI_ENABLED: '1'")
     for name in ('telegram','discord'):

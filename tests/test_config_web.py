@@ -137,11 +137,18 @@ class WebTests(unittest.TestCase):
         page=self.get('/setup')
         self.assertNotIn('name="code"',page.text)
         token=re.search(r'name="csrf" value="([^"]+)"',page.text)[1]
-        bad=self.client.post('/setup',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'password':'weakpass','repeat':'weakpass'})
+        bad=self.client.post('/setup',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'username':'admin','password':'weakpass','repeat':'weakpass'})
         self.assertIn('Mindestens 8',bad.text)
-        good=self.client.post('/setup',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'password':'Abcdef1!','repeat':'Abcdef1!'})
+        good=self.client.post('/setup',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'username':'admin','password':'Abcdef1!','repeat':'Abcdef1!'})
         self.assertEqual(good.status_code,302)
         self.assertTrue(store.verify('Abcdef1!'))
+        self.assertEqual(store.read()['username'],'admin')
+        self.client.post('/logout',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':re.search(r'name="csrf" value="([^"]+)"',self.get('/').text)[1]})
+        login=self.get('/login');token=re.search(r'name="csrf" value="([^"]+)"',login.text)[1]
+        denied=self.client.post('/login',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'username':'wrong','password':'Abcdef1!'})
+        self.assertEqual(denied.status_code,200)
+        accepted=self.client.post('/login',base_url=ORIGIN,headers={'Origin':ORIGIN},data={'csrf':token,'username':'admin','password':'Abcdef1!'})
+        self.assertEqual(accepted.status_code,302)
         self.assertIsNone(store.set_password('Otherpa1!',setup=True))
         self.assertEqual(self.get('/api/overview').status_code,200)
 

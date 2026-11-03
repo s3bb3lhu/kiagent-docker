@@ -1,6 +1,6 @@
 # OpenAI: API-Schlüssel & KI
 
-Einstellungen & Verbindungen · 1.4.0.0
+Einstellungen & Verbindungen · 1.5.0.0
 
 1. Die API-Key-Seite öffnen, eigenes Projekt wählen und einen neuen geheimen Schlüssel erstellen. Den Schlüssel unmittelbar unter Einstellungen → OpenAI einfügen. Nutzungsberechtigung, Modellzugang und Abrechnung des eigenen API-Projekts prüfen. Keine Zugangsdaten im Chat senden.
 

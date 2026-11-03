@@ -22,7 +22,7 @@ def snapshot():
 def main():
     if os.geteuid()!=0:raise SystemExit('Bitte auf dem Server mit sudo ausfuehren.')
     version=(PROJECT/'VERSION').read_text().strip()
-    if version not in {'1.3.0.0','1.3.0.1','1.4.0.0'}:raise SystemExit('Installierten Stand zuerst pruefen. Keine automatische Uebernahme.')
+    if version not in {'1.3.0.0','1.3.0.1','1.4.0.0','1.5.0.0'}:raise SystemExit('Installierten Stand zuerst pruefen. Keine automatische Uebernahme.')
     for name in ('config_broker.py','config_store.py','web_control.py'):
         actual=Path('/usr/local/lib/kiagent-config')/name;expected=PROJECT/'host'/name
         if actual.is_symlink() or actual.read_bytes()!=expected.read_bytes():raise SystemExit('Dienstcode weicht vom Projekt ab. Keine Aenderung.')

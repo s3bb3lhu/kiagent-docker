@@ -90,6 +90,7 @@ services:
     environment:
       <<: *environment
       CONFIG_ORIGIN: ${CONFIG_ORIGIN:-http://127.0.0.1:8787}
+      CONFIG_SERVICES_ORIGIN: ${SERVICES_ORIGIN:-}
       CONFIG_AUTH_DIR: /var/lib/kiagent-web/auth
       CONFIG_SETUP_ALLOWED_IP: ${CONFIG_SETUP_ALLOWED_IP:-127.0.0.1}
       CONFIG_SETUP_PROXY: ${CONFIG_SETUP_PROXY:-0}
@@ -115,6 +116,40 @@ services:
       retries: 3
       start_period: 30s
 
+  services-web:
+    <<: *common
+    profiles: [services]
+    user: ${SERVICES_UID:-65534}:${SERVICES_GID:-65534}
+    command: [gunicorn, --chdir, /services, --bind, '0.0.0.0:8080', --workers, '1', --threads, '4', --timeout, '80', --worker-tmp-dir, /tmp, --log-level, warning, --access-logfile, /dev/null, --certfile, /run/services-tls/fullchain.pem, --keyfile, /run/services-tls/privkey.pem, 'web:create_app()']
+    environment:
+      CREDENTIALS_DIRECTORY: /run/secrets
+      PYTHONDONTWRITEBYTECODE: '1'
+      SERVICES_ORIGIN: ${SERVICES_ORIGIN:-https://127.0.0.1:9999}
+      SERVICES_CONTROL_ORIGIN: ${CONFIG_ORIGIN:-https://127.0.0.1:9898}
+    mem_limit: 192m
+    cpus: 0.5
+    ports: ['${SERVICES_BIND:-127.0.0.1}:${SERVICES_PORT:-9999}:8080']
+    volumes:
+      - type: bind
+        source: /run/kiagent-services
+        target: /run/kiagent-services
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: /etc/kiagent-services/tls
+        target: /run/services-tls
+        read_only: true
+        bind: {create_host_path: false}
+    secrets:
+      - source: services-session
+        target: session
+    healthcheck:
+      test: [CMD, python, -B, /services/health.py]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
+
 secrets:
   telegram-token: {file: '${KIAGENT_SECRETS_DIR:?}/telegram-token'}
   allowed-users: {file: '${KIAGENT_SECRETS_DIR:?}/allowed-users'}
@@ -125,6 +160,7 @@ secrets:
   hc-server: {file: '${KIAGENT_SECRETS_DIR:?}/hc-server'}
   web-admin-hash: {file: '${KIAGENT_SECRETS_DIR:?}/web-admin-hash'}
   web-session-key: {file: '${KIAGENT_SECRETS_DIR:?}/web-session-key'}
+  services-session: {file: '/etc/kiagent-services/session'}
 
 networks:
   configuration-loopback:

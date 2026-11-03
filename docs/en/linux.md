@@ -1,6 +1,6 @@
 # Full Linux installation
 
-Installation and first steps · 1.4.0.0
+Installation and first steps · 1.5.0.0
 
 1. The full installation is tested on Ubuntu 26.04 amd64 with systemd, mdadm, Docker Engine and Compose. The host adapter does not support rootless Docker or UID remapping. Check existing RAID and alert configuration first.
 

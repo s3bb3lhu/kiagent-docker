@@ -1,4 +1,4 @@
-# Dokumentation · 1.4.0.0
+# Dokumentation · 1.5.0.0
 
 ## Installation & Einstieg
 
@@ -21,6 +21,7 @@
 - [KI & Paketinstallationen](packages.md)
 - [Steuerbefehle & Server-Neustart](control.md)
 - [SSH Console: Aktivitäten lesen](console.md)
+- [Dienste, Docker & Designs](services.md)
 
 ## Betrieb & Wartung
 

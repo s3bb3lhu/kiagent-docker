@@ -25,7 +25,7 @@ def main():
             raw=json.dumps(data).encode() if csrf else urllib.parse.urlencode(data).encode() if data is not None else None
             return opener.open(urllib.request.Request(origin+path,data=raw,headers=headers),timeout=15)
         html=get('/setup').read().decode();csrf=re.search(r'name="csrf" value="([^"]+)"',html)[1]
-        response=get('/setup',{'csrf':csrf,'password':'Fixture1!','repeat':'Fixture1!'})
+        response=get('/setup',{'csrf':csrf,'username':'admin','password':'Fixture1!','repeat':'Fixture1!'})
         assert response.geturl().endswith('/settings/setup')
         wizard=response.read().decode();assert 'data-provider="all"' in wizard
         for name in ('telegram','discord','openai','hc_bot','hc_server'):assert 'data-secret="'+name+'"' in wizard

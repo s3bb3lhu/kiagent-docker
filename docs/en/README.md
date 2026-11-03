@@ -1,4 +1,4 @@
-# Documentation · 1.4.0.0
+# Documentation · 1.5.0.0
 
 ## Installation and first steps
 
@@ -21,6 +21,7 @@
 - [AI and package installation](packages.md)
 - [Commands and server restart](control.md)
 - [SSH Console: reading activity](console.md)
+- [Services, Docker and designs](services.md)
 
 ## Operation and maintenance
 

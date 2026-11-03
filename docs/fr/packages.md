@@ -1,6 +1,6 @@
 # IA et installation de paquets
 
-Fonctions et commandes · 1.4.0.0
+Fonctions et commandes · 1.5.0.0
 
 1. /ki Installe nginx reconnaît la demande et prépare un plan APT. /ki_install nginx demande le plan sans IA. Dans Commandes, saisissez un paquet précis. Les paquets valides des dépôts APT configurés sont autorisés ; pas d’URL, fichier .deb local ni option shell.
 

@@ -1,6 +1,6 @@
 # Ollama : IA locale et limites
 
-Paramètres et connexions · 1.4.0.0
+Paramètres et connexions · 1.5.0.0
 
 1. Choisissez Ollama ou OpenAI dans Paramètres → Fournisseur IA. Ollama ne nécessite aucune clé API. Aucun changement automatique de fournisseur. Ollama traite sur le serveur ; OpenAI reçoit demandes et mesures.
 

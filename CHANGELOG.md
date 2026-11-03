@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0.0 — 2026-11-03
+
+- Include the service/container portal in fresh Compose installations, with separate HTTPS ports and its own unprivileged web container.
+- Add token-free browser administrator setup with username and password policy; preserve existing accounts.
+- List system services and all Docker containers, describe known services, and provide confirmed, audited start/stop/restart operations.
+- Add container website buttons, three mixable layouts/logos/button styles, seven palettes and a persistent day/night switch.
+- Keep host actions behind a peer-authenticated Unix socket; never mount the Docker socket into web containers.
+- Reuse and refresh read-only TLS certificate copies without editing unrelated websites.
+
+
 ## 1.4.0.0 — 2026-11-01
 
 - Add explicit Ollama/OpenAI selection for Telegram, Discord and diagnostics without automatic external fallback.

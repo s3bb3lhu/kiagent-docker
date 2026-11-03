@@ -45,7 +45,7 @@ def main():
         run('docker','compose','up','-d',env=environment,timeout=600)
         wait_setup()
         result=json.loads((ROOT/'.installation/status.json').read_text());assert result['state']=='ready'
-        assert result['url']=='https://8.8.8.8:9443/setup',result
+        assert result['url']=='https://8.8.8.8:9898/setup',result
         assert (ROOT/'.installation/WEBADRESSE.txt').read_text().strip()==result['url']
         version=json.loads((ROOT/'.installation/version.json').read_text())
         assert version['channel']=='stable' and version['version']==Path('/opt/kiagent-docker/project/VERSION').read_text().strip()
@@ -54,9 +54,9 @@ def main():
         for name in ('telegram-token','discord-token','openai-api-key','hc-bot','hc-server'):
             assert not (Path('/etc/kiagent-docker/secrets')/name).read_bytes().strip()
         context=ssl.create_default_context(cafile=str(cert))
-        with socket.create_connection(('127.0.0.1',9443),timeout=10) as raw:
+        with socket.create_connection(('127.0.0.1',9898),timeout=10) as raw:
             with context.wrap_socket(raw,server_hostname='8.8.8.8') as connection:
-                connection.sendall(b'GET /health HTTP/1.1\r\nHost: 8.8.8.8:9443\r\nConnection: close\r\n\r\n')
+                connection.sendall(b'GET /health HTTP/1.1\r\nHost: 8.8.8.8:9898\r\nConnection: close\r\n\r\n')
                 response=connection.makefile('rb').read()
         assert b'200 OK' in response and b'"ok":true' in response
         paths=[Path('/opt/kiagent-docker/project/compose.yaml'),Path('/etc/kiagent-docker/deployment.env'),ROOT/'.installation/version.json',cert,key]

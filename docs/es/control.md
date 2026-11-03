@@ -1,6 +1,6 @@
 # Comandos y reinicio del servidor
 
-Funciones y control · 1.4.0.0
+Funciones y control · 1.5.0.0
 
 1. Telegram: /status, /ram, /disk, /uptime y /diagnose consultan estado o crean diagnóstico de IA. /ki responde o planifica instalaciones. Discord ofrece /status, /ki, /ki_install, /ki_install_status y automatización. Los bots no tienen comandos idénticos.
 

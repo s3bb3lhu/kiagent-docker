@@ -1,6 +1,6 @@
 # Discord: bot, token and IDs
 
-Settings and connections · 1.4.0.0
+Settings and connections · 1.5.0.0
 
 1. Create your own application in the Developer Portal. Generate or reset the bot token under Bot and enter it directly in Settings → Discord. Find Application ID under General Information. Public Key and Client Secret are not the bot token.
 

@@ -34,8 +34,8 @@ Anfragen an Ollama werden auf dem Server verarbeitet. Bei OpenAI werden Anfrage 
 Für geprüfte Docker-Installationen 1.3.0.0/1.3.0.1 gibt es einen einmaligen Aktivierungsschritt. Er prüft vorhandene Dateien und offene Aufträge, erstellt ein privates Backup und baut zuerst das neue Image. Erst anschließend werden die zuvor laufenden Web-/Bot-Container umgestellt. Die Host-Reparatur- und Paket-Agenten, SQLite-Historie, Sperrzeiten, Tokens, Authentifizierung und HTTPS-Ports werden nicht ersetzt. Nur die eigene KI-Anbindung wird ergänzt. Bei einer nicht bestätigten Rücksetzung bleibt eine Wartungssperre zur manuellen Prüfung stehen.
 
 ```bash
-git clone --branch v1.4.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-ollama-1.4.0.0
-cd kiagent-ollama-1.4.0.0
+git clone --branch v1.5.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-ollama-1.5.0.0
+cd kiagent-ollama-1.5.0.0
 sudo python3 tools/activate_ollama.py
 ```
 

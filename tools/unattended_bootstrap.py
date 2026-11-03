@@ -89,7 +89,7 @@ def run(probe,stage_payload,namespace,child_env,select_source=None,check_ai=None
                 source_info=release['metadata']
                 print('Installiere aktuellen Stable-Release '+source_info['tag']+' ('+source_info['commit']+').',flush=True)
                 stage=stage_payload(payload=release['path'])
-                command=namespace+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--install-owner',owner,'--port',os.environ.get('SERVER_WEB_PORT','8443')]
+                command=namespace+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--install-owner',owner,'--port',os.environ.get('SERVER_WEB_PORT','9898')]
                 connection=os.environ.get('INSTALL_SSH_CONNECTION','')
                 if connection:command+=['--ssh-connection',connection]
                 subprocess.run(command,check=True,env=child_env())
@@ -98,6 +98,11 @@ def run(probe,stage_payload,namespace,child_env,select_source=None,check_ai=None
         url=ready_url()
         if source_info:write(RESULT/'version.json',json.dumps(source_info,sort_keys=True)+'\n',0o644)
         status('ready',url)
+        installed=json.loads(protected_file(HOST_CONFIG/'compose-install.json'))
+        if installed.get('services_origin'):
+            services_url=installed['services_origin']+'/setup'
+            write(RESULT/'DIENSTEMANAGER.txt',services_url+'\n',0o644)
+            print('DIENSTEMANAGER: '+services_url,flush=True)
         print('\nWEBADRESSE: '+url+'\nPasswort und alle Dienstzugriffe ausschliesslich dort einrichten.\nKein Update bestehender Installationen ausgefuehrt.',flush=True)
     except BaseException:
         status('failed')

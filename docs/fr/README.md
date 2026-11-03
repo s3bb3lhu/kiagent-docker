@@ -1,4 +1,4 @@
-# Documentation · 1.4.0.0
+# Documentation · 1.5.0.0
 
 ## Installation et premiers pas
 
@@ -21,6 +21,7 @@
 - [IA et installation de paquets](packages.md)
 - [Commandes et redémarrage serveur](control.md)
 - [Console SSH : lire l’activité](console.md)
+- [Services, Docker et thèmes](services.md)
 
 ## Exploitation et maintenance
 

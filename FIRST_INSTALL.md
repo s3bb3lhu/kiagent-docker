@@ -63,3 +63,9 @@ Nach Serverneustarts starten die eingerichteten Host-Dienste den Web-/Bot-Stack.
 Der einmalige Setup-Container benötigt wie bisher privilegierten Hostzugriff, den Host-PID-Namensraum und den Mount `/` nach `/host`. Er beendet sich nach der Einrichtung und hat keine Neustartregel. Im Gegensatz zu `run --rm` bleibt bei `up -d` der beendete Setup-Container samt Protokoll sichtbar. Die laufenden Web-/Bot-Container erhalten diese Rechte und keinen Docker-Socket.
 
 Die Standarddatei im Download ist `compose.yaml`; die vorbereitete Laufzeitvorlage heißt `compose.runtime.yaml`. Der Installer legt die Laufzeitdatei auf dem Host weiter unter `/opt/kiagent-docker/project/compose.yaml` ab. Damit bleiben die bestehenden Host-Werkzeuge kompatibel. Bestehende Installationen werden durch diese neue Standarddatei nicht umgestellt.
+
+## Dienstemanager ab 1.5.0.0
+
+Die Standardinstallation startet zusätzlich den unprivilegierten Compose-Dienst `services-web` auf HTTPS-Port 9999 (oder dem nächsten freien Port). Die Serversteuerung verwendet standardmäßig 9898. Die Adressen stehen getrennt in `.installation/WEBADRESSE.txt` und `.installation/DIENSTEMANAGER.txt`. Auf jeder Seite wird das eigene Konto im Browser eingerichtet: mindestens acht Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen. Keine Terminal-Tokens und keine mitgelieferten Zugangsdaten.
+
+Für bestehende Installationen ist dies kein automatisches Update. Native Windows-Dienstverwaltung wird nicht angeboten; die vollständige Variante benötigt den unterstützten Linux-Host.

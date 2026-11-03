@@ -1,6 +1,6 @@
 # Ollama: lokale KI & Limits
 
-Einstellungen & Verbindungen · 1.4.0.0
+Einstellungen & Verbindungen · 1.5.0.0
 
 1. Unter Einstellungen → KI-Anbieter zwischen Ollama und OpenAI wählen. Ollama benötigt keinen API-Key. Es gibt keinen automatischen Anbieterwechsel bei Fehlern. Anfragen an Ollama bleiben auf dem Server; bei OpenAI werden Anfragen und Messwerte an OpenAI gesendet.
 

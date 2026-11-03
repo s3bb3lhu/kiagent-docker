@@ -1,6 +1,6 @@
 # Ollama: local AI and limits
 
-Settings and connections · 1.4.0.0
+Settings and connections · 1.5.0.0
 
 1. Choose Ollama or OpenAI under Settings → AI provider. Ollama needs no API key. Errors never switch providers automatically. Ollama processes requests on the server; OpenAI receives requests and measurements.
 

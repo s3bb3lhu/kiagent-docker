@@ -1,10 +1,14 @@
 # Serversteuerung / Server Control — Kiagent Docker
 
-**Version 1.4.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.4.0.0)
+**Version 1.5.0.0** · [Docker-Compose und Schnellstart](COMPOSE.md) · [Release](https://github.com/s3bb3lhu/kiagent-docker/releases/tag/v1.5.0.0)
 
 Anleitungen: [Deutsch](docs/de/README.md) · [English](docs/en/README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md). In der angemeldeten Oberfläche: **Einstellungen → Dokumentation**. Veröffentlichungsstand und Grenzen: [RELEASE.md](RELEASE.md) und [CHANGELOG.md](CHANGELOG.md).
 
 Selbst gehostete KI-Steuerung eines Ubuntu-Servers. Zugangsdaten und persönliche IDs sind **nicht enthalten**. Im neuen Compose-Installationsweg werden sie erst nach dem Web-Start im Browser eingegeben.
+
+## Neu in 1.5.0.0
+
+Die vollständige Compose-Installation enthält jetzt die Serversteuerung (standardmäßig HTTPS **9898**) und den [Dienstemanager](SERVICES_PORTAL.md) (HTTPS **9999**) mit Diensten, Containern und Container-Webseiten. Beide Seiten richten Benutzername und Passwort direkt im Browser ein; ein Einrichtungstoken ist nicht nötig. API-Keys und Bot-Tokens werden erst später bei den Diensten eingegeben. Designs, Logos, Buttons, Farben und Tag/Nacht sind im Dienstemanager frei kombinierbar. Belegte Ports werden nicht übernommen; die tatsächlich gewählten Adressen stehen in den Installationsdateien. Bestehende Installationen werden nicht automatisch aktualisiert.
 
 ## Erstinstallation: ein Compose-Befehl
 
@@ -18,7 +22,7 @@ docker compose up -d
 
 Der Installationshelfer liegt auf `main` und lädt für jede Neuinstallation den neuesten veröffentlichten stabilen GitHub-Release. Vorabversionen und unveröffentlichter Anwendungscode werden nicht installiert. Auch ein lokal älteres Installer-Image greift auf den aktuellen Stable-Release zu; ist dieser nicht sicher abrufbar, wird ohne Rückfall auf alte Dateien abgebrochen. Bestehende Installationen werden nicht aktualisiert. Er prüft vorhandene IP-Zertifikate, übernimmt ein gültiges Zertifikat lesend oder stellt auf einem freien Server automatisch eines aus. Die Netzwerkadressen werden erkannt; Passwort und Dienstzugänge werden danach ausschließlich im Browser eingerichtet.
 
-Die fertige HTTPS-Adresse steht automatisch in **`.installation/WEBADRESSE.txt`** sowie im Protokoll von `setup`. Optional: `docker compose logs -f setup`. Docker selbst blendet mit `-d` spätere Anwendungsausgaben aus. Der beendete Setup-Container mit Exitcode 0 ist normal. Vorhandene Dienste bleiben unverändert; ohne freie Zertifikatsausstellungsmöglichkeit wird geschützt abgebrochen.
+Die fertige HTTPS-Adresse steht automatisch in **`.installation/WEBADRESSE.txt`** (Serversteuerung) und **`.installation/DIENSTEMANAGER.txt`** (Dienste/Container) sowie im Protokoll von `setup`. Optional: `docker compose logs -f setup`. Docker selbst blendet mit `-d` spätere Anwendungsausgaben aus. Der beendete Setup-Container mit Exitcode 0 ist normal. Vorhandene Dienste bleiben unverändert; ohne freie Zertifikatsausstellungsmöglichkeit wird geschützt abgebrochen.
 
 **[Erstinstallations-Anleitung, Zertifikate und Betriebsgrenzen](FIRST_INSTALL.md)** · [Host-Betrieb und bisheriger expliziter Installer](FULL_COMPOSE.md). Die Anwendungsversion wird für diesen Erstinstallationsweg nicht erhöht; bestehende Release-Tags bleiben unverändert.
 

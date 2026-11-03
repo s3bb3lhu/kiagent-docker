@@ -44,7 +44,10 @@ def exercise():
             assert existing.getsockname()[1]==9443
             assert subprocess.check_output(['systemctl','is-active','kiagent-tls-sync.timer'],text=True).strip()=='active'
             print('Parallel HTTPS: occupied port preserved, valid TLS login, original certificate files unchanged, renewal timer active: OK')
+            from exercise_services_compose import exercise as exercise_services
+            exercise_services(source,cert,port)
         finally:
+            subprocess.run(['systemctl','disable','--now','kiagent-services-tls.timer','kiagent-services-agent'],capture_output=True)
             subprocess.run(['systemctl','disable','--now','kiagent-tls-sync.timer'],capture_output=True)
             trust.unlink(missing_ok=True)
             subprocess.run(['update-ca-certificates'],capture_output=True)

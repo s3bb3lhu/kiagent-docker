@@ -1,8 +1,8 @@
 # Connexion, mot de passe et HTTPS
 
-Paramètres et connexions · 1.4.0.0
+Paramètres et connexions · 1.5.0.0
 
-1. Ouvrez /setup lors de la première configuration. Aucun mot de passe par défaut ni code. Utilisez au moins 8 caractères dont une majuscule, un chiffre et un caractère spécial, sans espace. L’initialisation HTTPS publique est limitée à l’IP de l’administrateur.
+1. Ouvrez /setup pour choisir un identifiant et un mot de passe. Aucun mot de passe par défaut ni code. L’identifiant contient de 3 à 32 lettres, chiffres, points, traits de soulignement ou tirets. Utilisez au moins 8 caractères dont une majuscule, un chiffre et un caractère spécial, sans espace. L’initialisation HTTPS publique est limitée à l’IP de l’administrateur.
 
 2. Paramètres → Modifier le mot de passe exige le mot de passe actuel. La modification invalide les sessions. En cas d’oubli, une réinitialisation administrative via l’accès serveur existant est nécessaire ; voir DISTRIBUTION.md. Autorisez les cookies du site.
 

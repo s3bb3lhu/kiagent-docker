@@ -43,7 +43,7 @@ def main():
     if args.install_owner and (len(args.install_owner)!=64 or any(c not in '0123456789abcdef' for c in args.install_owner)):raise ValueError('Ungueltige Installationskennung.')
     if not 1024<=args.loopback_port<=65535:raise ValueError('Ungueltiger interner Web-Port.')
     if os.geteuid()!=0:raise SystemExit('Host-Einrichtung benoetigt root.')
-    guarded=[PROJECT.parent,CONFIG,Path('/opt/kiagent/executor'),Path('/var/lib/kiagent-executor'),Path('/usr/local/lib/kiagent-config'),Path('/var/lib/kiagent-web')]
+    guarded=[PROJECT.parent,CONFIG,Path('/opt/kiagent/executor'),Path('/var/lib/kiagent-executor'),Path('/usr/local/lib/kiagent-config'),Path('/var/lib/kiagent-web'),Path('/etc/kiagent-services'),Path('/var/lib/kiagent-services'),Path('/usr/local/lib/kiagent-services')]
     if any(path.exists() or path.is_symlink() for path in guarded):raise SystemExit('Bestehende Einrichtung erkannt. Keine automatische Uebernahme.')
     if any(Path('/etc/systemd/system',name).exists() for name in ('kiagent-docker.service','kiagent-executor.service','kiagent-packages.service','kiagent-config.service')):raise SystemExit('Vorhandene Host-Dienste zuerst pruefen.')
     subprocess.run(['/usr/bin/python3','-B',str(SOURCE/'tools/release_check.py')],check=True)
@@ -84,6 +84,7 @@ def main():
     atomic(Path('/usr/local/lib/kiagent-backup/backup.py'),(SOURCE/'host/backup.py').read_bytes())
     for directory in ('/var/backups/kiagent-daily','/var/backups/kiagent-config','/var/lib/kiagent-config','/var/lib/kiagent-backup','/var/lib/kiagent-backup/work'):Path(directory).mkdir(mode=0o700,parents=True,exist_ok=True)
     for path in (SOURCE/'host/systemd').iterdir():atomic(Path('/etc/systemd/system')/path.name,path.read_bytes())
+    subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/provision_services.py'),'--prepare'],check=True)
     condition=b'[Unit]\nConditionPathExists=/etc/kiagent-docker/runtime-ready\n'
     for unit in ('kiagent-executor.service','kiagent-packages.service'):
         atomic(Path('/etc/systemd/system')/(unit+'.d')/'10-browser-setup.conf',condition)

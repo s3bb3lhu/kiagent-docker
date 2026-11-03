@@ -1,8 +1,8 @@
 # Anmeldung, Passwort & HTTPS
 
-Einstellungen & Verbindungen · 1.4.0.0
+Einstellungen & Verbindungen · 1.5.0.0
 
-1. Bei der ersten Einrichtung /setup öffnen. Es gibt kein Standardpasswort und keinen Einrichtungscode. Mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen; keine Leerzeichen. Bei öffentlichem HTTPS ist die Ersteinrichtung auf die Administrator-IP beschränkt.
+1. Bei der ersten Einrichtung /setup öffnen und Benutzername sowie Passwort festlegen. Es gibt kein Standardpasswort und keinen Einrichtungscode. Der Benutzername hat 3–32 Zeichen (Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich). Mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen; keine Leerzeichen. Bei öffentlichem HTTPS ist die Ersteinrichtung auf die Administrator-IP beschränkt.
 
 2. Einstellungen → Passwort ändern verlangt das bisherige Passwort. Eine Änderung macht bestehende Sitzungen ungültig. Bei vergessenem Passwort ist ein administrativer Reset per bestehendem Serverzugang nötig; siehe DISTRIBUTION.md. Cookies für die Seite zulassen.
 

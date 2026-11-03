@@ -25,7 +25,7 @@ def marker_read():
     return data
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=8443);parser.add_argument('--resume-network',action='store_true');parser.add_argument('--install-owner');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--address');parser.add_argument('--admin-ip');parser.add_argument('--ssh-connection',default='');parser.add_argument('--port',type=web_port,default=9898);parser.add_argument('--resume-network',action='store_true');parser.add_argument('--install-owner');args=parser.parse_args()
     if os.geteuid()!=0:raise SystemExit('Host-Installation benoetigt root.')
     # nsenter may inherit a cwd outside the host root. Resolve a real host cwd now.
     os.chdir('/')
@@ -66,11 +66,15 @@ def main():
             state['tls_ready']=True;atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
         if (PROJECT/'tools/install_ollama.py').is_file():
             subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/install_ollama.py')],check=True)
+        if (PROJECT/'tools/provision_services.py').is_file():
+            subprocess.run(['/usr/bin/python3','-I','-B',str(PROJECT/'tools/provision_services.py')],check=True)
+            state['services_origin']=json.loads(Path('/etc/kiagent-services/deployment.json').read_text())['origin']
     except BaseException:
         print('Die Web-Grundinstallation ist vorhanden; Bots warten weiter auf Browser-Einrichtung. HTTPS ist nicht abgeschlossen. Nach Pruefung: denselben Compose-Installer mit --resume-network starten.')
         raise
     state['network_ready']=True;atomic(MARKER,(json.dumps(state)+'\n').encode(),0o600)
     print('Vollinstallation bereit: '+origin+'/setup')
+    if state.get('services_origin'):print('Dienstemanager: '+state['services_origin']+'/setup')
     print('Dort Passwort festlegen und danach Dienst-IDs sowie API-Keys/Bot-Tokens eingeben. Erst nach erfolgreicher Pruefung werden Bots und Host-Aktionen aktiviert.')
     print('Runtime: docker compose --env-file /etc/kiagent-docker/deployment.env -f /opt/kiagent-docker/project/compose.yaml ps')
 

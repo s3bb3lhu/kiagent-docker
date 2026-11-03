@@ -102,7 +102,7 @@ def main():
         subprocess.run(NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/install_browser_host.py'],check=True,env=child_env())
         print('Nur lokale Web-Einrichtung: http://127.0.0.1:8787/setup. Bots und Serveraktionen bleiben gesperrt.');return
     print('Einmalige Host-Installation: systemd-Agenten, Docker-Bots/Web und HTTPS. Der Installer beendet sich danach.')
-    port=os.environ.get('SERVER_WEB_PORT','8443')
+    port=os.environ.get('SERVER_WEB_PORT','9898')
     stage=stage_payload()
     command=NAMESPACE+['/usr/bin/python3','-I','-B',stage+'/tools/host_compose_install.py','--port',str(port)]
     connection=os.environ.get('INSTALL_SSH_CONNECTION','')

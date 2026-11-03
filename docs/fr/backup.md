@@ -1,6 +1,6 @@
 # Sauvegardes et restauration
 
-Exploitation et maintenance · 1.4.0.0
+Exploitation et maintenance · 1.5.0.0
 
 1. L’installation Linux gérée sauvegarde chaque jour à 03:15 Europe/Berlin dans /var/backups/kiagent-daily. Les archives contiennent des secrets et un instantané SQLite cohérent, lisibles uniquement par root. Aucune suppression automatique des anciennes archives ; surveillez l’espace.
 

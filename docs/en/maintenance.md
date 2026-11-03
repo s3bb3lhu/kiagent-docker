@@ -1,8 +1,8 @@
 # Updates, version and troubleshooting
 
-Operation and maintenance · 1.4.0.0
+Operation and maintenance · 1.5.0.0
 
-1. The product version appears at the bottom of the menu. The current release is version 1.4.0.0. Updates are explicitly installed from reviewed source; there is no unattended self-update. Check open/uncertain jobs and backups first.
+1. The product version appears at the bottom of the menu. The current release is version 1.5.0.0. Updates are explicitly installed from reviewed source; there is no unattended self-update. Check open/uncertain jobs and backups first.
 
 2. On an existing managed installation run tools/install_ui.py from the prepared source with sudo. It tests in isolation, backs up code/images and checks restart. Credentials, password, history and lock times are preserved. Afterwards reload the browser with Ctrl+F5.
 

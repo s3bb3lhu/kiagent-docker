@@ -1,4 +1,4 @@
-# Vollinstallation per Docker Compose — 1.4.0.0
+# Vollinstallation per Docker Compose — 1.5.0.0
 
 **Neuer Standard auf main:** Für `docker compose up -d` ohne zusätzliche Installationsbefehle siehe [FIRST_INSTALL.md](FIRST_INSTALL.md). Die folgenden Befehle dokumentieren den weiterhin vorhandenen expliziten Installer und den Host-Betrieb.
 
@@ -19,8 +19,8 @@ Windows Server benötigt eine entsprechende Linux-VM. Docker Desktop beziehungsw
 Auf einem geeigneten Server ohne vorhandene vollständige Kiagent-Hostinstallation:
 
 ```bash
-git clone --branch v1.4.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.4.0.0
-cd kiagent-docker-1.4.0.0
+git clone --branch v1.5.0.0 --depth 1 https://github.com/s3bb3lhu/kiagent-docker.git kiagent-docker-1.5.0.0
+cd kiagent-docker-1.5.0.0
 docker compose -f compose.install.yaml run --rm --build installer
 ```
 

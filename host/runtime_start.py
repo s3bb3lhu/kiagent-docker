@@ -5,7 +5,8 @@ ROOT=Path('/etc/kiagent-docker')
 COMPOSE=['/usr/bin/docker','compose','--env-file',str(ROOT/'deployment.env'),'-f','/opt/kiagent-docker/project/compose.yaml']
 
 def services(root=ROOT):
-    return ['config-web'] if (root/'pending-setup').exists() or not (root/'runtime-ready').is_file() else ['config-web','telegram','discord','server-heartbeat']
+    web=['config-web']+(['services-web'] if (root/'services-ready').is_file() else [])
+    return web if (root/'pending-setup').exists() or not (root/'runtime-ready').is_file() else web+['telegram','discord','server-heartbeat']
 
 def main():
     subprocess.run(COMPOSE+['up','-d','--no-build','--pull','never','--wait','--wait-timeout','180',*services()],check=True,timeout=210)

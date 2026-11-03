@@ -6,10 +6,14 @@ import hmac
 import json
 import os
 import secrets
+import re
 import tempfile
 from pathlib import Path
 
 POLICY = 'Mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen.'
+
+def valid_username(value):
+    return isinstance(value,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{2,31}',value) is not None
 
 def valid_password(value):
     return (isinstance(value,str) and 8<=len(value)<=256 and not any(c.isspace() for c in value)
@@ -70,8 +74,9 @@ class AuthStore:
         with self.lock():
             self.write({'mode':'setup','epoch':secrets.token_hex(24)})
 
-    def set_password(self,password,*,setup=False,current=None):
+    def set_password(self,password,*,setup=False,current=None,username=None):
         if not valid_password(password):return None
+        if username is not None and not valid_username(username):return None
         with self.lock():
             data=self.read()
             if setup:
@@ -81,5 +86,7 @@ class AuthStore:
             if not allowed:return None
             salt=secrets.token_hex(16)
             value={'mode':'ready','salt':salt,'digest':password_hash(password,salt),'epoch':secrets.token_hex(24)}
+            if setup and username is not None:value['username']=username
+            elif 'username' in data:value['username']=data['username']
             self.write(value)
             return value['epoch']

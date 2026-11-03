@@ -1,8 +1,8 @@
 # Mises à jour, version et dépannage
 
-Exploitation et maintenance · 1.4.0.0
+Exploitation et maintenance · 1.5.0.0
 
-1. La version apparaît en bas du menu. La version actuelle est 1.4.0.0. Les mises à jour s’installent explicitement depuis des sources vérifiées ; aucune mise à jour autonome. Vérifiez d’abord tâches ouvertes/incertaines et sauvegardes.
+1. La version apparaît en bas du menu. La version actuelle est 1.5.0.0. Les mises à jour s’installent explicitement depuis des sources vérifiées ; aucune mise à jour autonome. Vérifiez d’abord tâches ouvertes/incertaines et sauvegardes.
 
 2. Sur une installation gérée existante, lancez tools/install_ui.py depuis les sources préparées avec sudo. Il teste isolément, sauvegarde code/images et vérifie le redémarrage. Secrets, mot de passe, historique et délais sont conservés. Rechargez avec Ctrl+F5.
 
